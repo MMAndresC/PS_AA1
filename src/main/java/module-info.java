@@ -7,4 +7,6 @@ module com.svalero.ps_aa1 {
 
     opens com.svalero.ps_aa1 to javafx.fxml;
     exports com.svalero.ps_aa1;
+    exports com.svalero.ps_aa1.controller;
+    opens com.svalero.ps_aa1.controller to javafx.fxml;
 }
