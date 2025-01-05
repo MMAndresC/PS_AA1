@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="252.0" prefWidth="410.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svalero.ps_aa1.controller.SplashScreenController">
+   <children>
+      <ImageView fitHeight="150.0" fitWidth="200.0" layoutX="24.0" layoutY="36.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@assets/eva01mini.jpg" />
+         </image>
+      </ImageView>
+      <Label layoutX="186.0" layoutY="54.0" text="Programación de servicios y procesos">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label layoutX="270.0" layoutY="99.0" text="v1.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <ProgressBar fx:id="initBar" layoutX="52.0" layoutY="212.0" prefHeight="18.0" prefWidth="320.0" progress="0.0" />
+   </children>
+</Pane>
