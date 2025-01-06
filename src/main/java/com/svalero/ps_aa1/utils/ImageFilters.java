@@ -1,4 +1,4 @@
-package com.svalero.ps_aa1.task;
+package com.svalero.ps_aa1.utils;
 import java.awt.image.BufferedImage;
 
 public class ImageFilters {
