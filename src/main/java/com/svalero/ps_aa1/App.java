@@ -11,6 +11,7 @@ public class App extends Application{
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("splash-screen.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 410, 252);
+        stage.setTitle("Editor de imagenes");
         stage.setScene(scene);
         stage.show();
     }

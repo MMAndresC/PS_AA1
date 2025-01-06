@@ -18,6 +18,7 @@ public class SplashScreenController implements Initializable{
     public void initialize(URL location, ResourceBundle resources) {
         taskAction();
     }
+
     @FXML
     private ProgressBar initBar;
 
@@ -31,9 +32,9 @@ public class SplashScreenController implements Initializable{
 
     private void switchScene() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/svalero/ps_aa1/hello-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/svalero/ps_aa1/main-view.fxml"));
             Parent newRoot = loader.load();
-            Scene newScene = new Scene(newRoot,320,240);
+            Scene newScene = new Scene(newRoot,800,600);
             Stage stage = (Stage) initBar.getScene().getWindow();
             stage.setScene(newScene);
 
