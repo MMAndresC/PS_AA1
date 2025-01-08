@@ -13,26 +13,31 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Pane?>
 
-<TabPane id="Edición" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="556.0" prefWidth="801.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svalero.ps_aa1.controller.MainController">
+<TabPane id="Edición" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="653.0" prefWidth="918.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.svalero.ps_aa1.controller.MainController">
   <tabs>
     <Tab text="Edición">
       <content>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                <children>
-                  <SplitPane dividerPositions="0.5" layoutX="21.0" layoutY="55.0" prefHeight="160.0" prefWidth="760.0">
+                  <SplitPane dividerPositions="0.5" layoutX="21.0" layoutY="55.0" prefHeight="210.0" prefWidth="878.0">
                     <items>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="158.0" prefWidth="481.0">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="192.0" prefWidth="631.0">
                            <children>
-                              <Separator layoutX="248.0" layoutY="-12.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="10.0" />
-                              <Button fx:id="selectFile" layoutX="27.0" layoutY="90.0" mnemonicParsing="false" onAction="#onClickSelectFile" text="Select file" />
-                              <Label fx:id="pathFiles" layoutX="10.0" layoutY="30.0" prefHeight="26.0" prefWidth="235.0" style="-fx-border-color: 1; -fx-border-color: black; -fx-padding: 3px;" text="C:\Users\Public\Pictures">
+                              <Button fx:id="selectFile" layoutX="43.0" layoutY="77.0" mnemonicParsing="false" onAction="#onClickSelectFile" text="Select file" />
+                              <Label fx:id="pathFiles" layoutX="14.0" layoutY="37.0" prefHeight="26.0" prefWidth="301.0" style="-fx-border-color: black; -fx-padding: 3px;" text="C:\Users\Public\Pictures">
                                  <effect>
                                     <Glow />
                                  </effect>
                               </Label>
-                              <Button fx:id="selectDirectory" layoutX="134.0" layoutY="90.0" mnemonicParsing="false" text="Select directory" />
-                              <Button disable="true" layoutX="341.0" layoutY="121.0" mnemonicParsing="false" text="Convertir" />
-                              <Pane fx:id="previewPane" layoutX="258.0" layoutY="-1.0" prefHeight="122.0" prefWidth="250.0" />
+                              <Button fx:id="selectDirectory" layoutX="144.0" layoutY="77.0" mnemonicParsing="false" onAction="#onClickSelectDirectory" text="Select directory" />
+                              <Pane fx:id="previewPane" layoutX="342.0" layoutY="11.0" prefHeight="147.0" prefWidth="274.0" />
+                              <Separator layoutX="326.0" layoutY="4.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="10.0" />
+                              <Button disable="true" layoutX="448.0" layoutY="169.0" mnemonicParsing="false" text="Convertir" />
+                              <Label layoutX="14.0" layoutY="14.0" text="Abrir" />
+                              <Separator layoutX="17.0" layoutY="126.0" prefHeight="2.0" prefWidth="294.0" />
+                              <Label layoutX="18.0" layoutY="140.0" text="Guardar en" />
+                              <Label fx:id="pathSave" layoutX="18.0" layoutY="168.0" prefHeight="26.0" prefWidth="268.0" style="-fx-border-color: black; -fx-padding: 3px;" text="Label" />
+                              <Button layoutX="292.0" layoutY="169.0" mnemonicParsing="false" text="..." />
                            </children>
                         </AnchorPane>
                       <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="158.0" prefWidth="240.0">
@@ -45,10 +50,10 @@
                            </children></AnchorPane>
                     </items>
                   </SplitPane>
-                  <Label layoutX="279.0" layoutY="32.0" text="Preview" />
+                  <Label layoutX="353.0" layoutY="32.0" text="Preview" />
                   <Label layoutX="21.0" layoutY="32.0" text="Seleccionar imágenes" />
-                  <Label layoutX="541.0" layoutY="32.0" text="Filtros" />
-                  <ScrollPane layoutX="20.0" layoutY="232.0" prefHeight="292.0" prefWidth="762.0" />
+                  <Label layoutX="659.0" layoutY="32.0" text="Filtros" />
+                  <ScrollPane layoutX="18.0" layoutY="285.0" prefHeight="325.0" prefWidth="882.0" />
                </children></AnchorPane>
       </content>
     </Tab>
