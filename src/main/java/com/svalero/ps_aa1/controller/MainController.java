@@ -107,8 +107,9 @@ public class MainController implements Initializable {
                 thread.setDaemon(true);
                 task.setOnSucceeded(event -> System.out.println("Images loaded"));
                 thread.start();
+            } else {
+                previewPane.getChildren().clear();
             }
-
         }
     }
 
