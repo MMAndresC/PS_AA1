@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     private static final String OPEN_DEFAULT_PATH = "C:\\Users\\Public\\Pictures";
-    private static final String SAVE_DEFAULT_PATH = "C:\\Users\\Public\\Pictures\\Saved";
+    private static final String SAVE_DEFAULT_PATH = "C:\\Users\\Public\\Pictures\\Filtered";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {}
@@ -40,6 +40,9 @@ public class MainController implements Initializable {
 
     @FXML
     private Button selectDirectory;
+
+    @FXML
+    private Button selectSavedPath;
 
     @FXML
     private Slider brightnessValue;
@@ -110,6 +113,26 @@ public class MainController implements Initializable {
             } else {
                 previewPane.getChildren().clear();
             }
+        }
+    }
+
+    public void onClickSelectSavedPath(){
+        Stage stage = (Stage) selectSavedPath.getScene().getWindow();
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        //Default directory to show
+        File initialDirectory = new File(SAVE_DEFAULT_PATH);
+        if (initialDirectory.exists()) {
+            directoryChooser.setInitialDirectory(initialDirectory);
+        }else{
+            boolean directoryCreated = initialDirectory.mkdir();
+            if (directoryCreated) {
+                System.out.println("Directory created successfully at: " + initialDirectory);
+                directoryChooser.setInitialDirectory(initialDirectory);
+            }
+        }
+        File selectedDirectory = directoryChooser.showDialog(stage);
+        if(selectedDirectory != null) {
+            pathSave.setText(selectedDirectory.getAbsolutePath());
         }
     }
 

@@ -24,7 +24,7 @@
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="192.0" prefWidth="631.0">
                            <children>
                               <Button fx:id="selectFile" layoutX="43.0" layoutY="77.0" mnemonicParsing="false" onAction="#onClickSelectFile" text="Select file" />
-                              <Label fx:id="pathFiles" layoutX="14.0" layoutY="37.0" prefHeight="26.0" prefWidth="301.0" style="-fx-border-color: black; -fx-padding: 3px;" text="C:\Users\Public\Pictures">
+                              <Label fx:id="pathFiles" layoutX="18.0" layoutY="32.0" prefHeight="26.0" prefWidth="301.0" style="-fx-border-color: black; -fx-padding: 3px;" text="C:\Users\Public\Pictures">
                                  <effect>
                                     <Glow />
                                  </effect>
@@ -33,11 +33,11 @@
                               <Pane fx:id="previewPane" layoutX="342.0" layoutY="11.0" prefHeight="147.0" prefWidth="274.0" />
                               <Separator layoutX="326.0" layoutY="4.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="10.0" />
                               <Button disable="true" layoutX="448.0" layoutY="169.0" mnemonicParsing="false" text="Convertir" />
-                              <Label layoutX="14.0" layoutY="14.0" text="Abrir" />
+                              <Label layoutX="18.0" layoutY="5.0" text="Abrir" />
                               <Separator layoutX="17.0" layoutY="126.0" prefHeight="2.0" prefWidth="294.0" />
                               <Label layoutX="18.0" layoutY="140.0" text="Guardar en" />
-                              <Label fx:id="pathSave" layoutX="18.0" layoutY="168.0" prefHeight="26.0" prefWidth="268.0" style="-fx-border-color: black; -fx-padding: 3px;" text="Label" />
-                              <Button layoutX="292.0" layoutY="169.0" mnemonicParsing="false" text="..." />
+                              <Label fx:id="pathSave" layoutX="18.0" layoutY="168.0" prefHeight="26.0" prefWidth="268.0" style="-fx-border-color: black; -fx-padding: 3px;" text="C:\Users\Public\Pictures\Filtered" />
+                              <Button fx:id="selectSavedPath" layoutX="292.0" layoutY="169.0" mnemonicParsing="false" onAction="#onClickSelectSavedPath" text="..." />
                            </children>
                         </AnchorPane>
                       <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="158.0" prefWidth="240.0">
