@@ -51,6 +51,7 @@ public class MainController implements Initializable {
                     orderBrightness.setText(String.valueOf(this.orderFilters.size()));
                 }
             }
+            applyFilters.setDisable(this.orderFilters.isEmpty());
         });
     }
 
@@ -70,8 +71,6 @@ public class MainController implements Initializable {
 
     @FXML
     private Label orderGray;
-    @FXML
-    private Button applyFilter;
 
     @FXML
     private Button selectFile;
@@ -81,6 +80,9 @@ public class MainController implements Initializable {
 
     @FXML
     private Button selectSavedPath;
+
+    @FXML
+    private Button applyFilters;
 
     @FXML
     private Slider brightnessSlider;
@@ -109,7 +111,6 @@ public class MainController implements Initializable {
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
             pathFiles.setText(selectedFile.getAbsolutePath());
-            this.imageToProcess.clear();
             this.imageToProcess.add(selectedFile);
             ImageView imageView = new ImageView();
             //Clear preview
@@ -150,7 +151,6 @@ public class MainController implements Initializable {
                     file.isFile() && isImageFile(file)
             );
             if (imageFiles != null && imageFiles.length > 0) {
-                this.imageToProcess.clear();
                 Collections.addAll(this.imageToProcess, imageFiles);
                 DirectoryPreviewTask task = new DirectoryPreviewTask(imageFiles, previewPane);
                 Thread thread = new Thread(task);
@@ -178,7 +178,7 @@ public class MainController implements Initializable {
         }
     }
 
-    public void onChekedFilter(javafx.event.ActionEvent event){
+    public void onCheckedFilter(javafx.event.ActionEvent event){
         CheckBox source = (CheckBox) event.getSource();
         String checkBoxId = source.getId();
         String filter = checkBoxId.equals("checkColor") ? "color" : "gray";
@@ -197,6 +197,11 @@ public class MainController implements Initializable {
                 else orderGray.setText("");
             }
         }
+        applyFilters.setDisable(this.orderFilters.isEmpty());
+    }
+
+    public void onClickApplyFilters(){
+
     }
 
     public void changeOrder(int index){
