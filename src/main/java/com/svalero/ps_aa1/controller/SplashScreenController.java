@@ -27,7 +27,9 @@ public class SplashScreenController implements Initializable{
         LoadingTask loadingTask = new LoadingTask();
         this.initBar.progressProperty().bind(loadingTask.progressProperty());
         loadingTask.setOnSucceeded(event -> switchScene());
-        new Thread(loadingTask).start();
+        Thread thread = new Thread(loadingTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void switchScene() {

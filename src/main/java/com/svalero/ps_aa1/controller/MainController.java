@@ -160,12 +160,23 @@ public class MainController implements Initializable {
                     file.isFile() && isImageFile(file)
             );
             if (imageFiles != null && imageFiles.length > 0) {
+                this.selectDirectory.setDisable(true);
+                this.selectFile.setDisable(true);
                 Collections.addAll(this.imageToProcess, imageFiles);
                 DirectoryPreviewTask task = new DirectoryPreviewTask(imageFiles, previewPane);
                 Thread thread = new Thread(task);
                 //Close thread if app exit
                 thread.setDaemon(true);
-                task.setOnSucceeded(event -> System.out.println("Images loaded"));
+                task.setOnSucceeded(event -> {
+                    System.out.println("Images loaded");
+                    this.selectDirectory.setDisable(false);
+                    this.selectFile.setDisable(false);
+                });
+                task.setOnFailed(event -> {
+                    System.out.println("Images failed to load");
+                    this.selectDirectory.setDisable(false);
+                    this.selectFile.setDisable(false);
+                });
                 thread.start();
             } else {
                 previewPane.getChildren().clear();
