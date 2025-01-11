@@ -6,12 +6,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class ImageManager {
-    public BufferedImage getImage(File file) throws IOException {
+    public BufferedImage toBufferedImage(File file) throws IOException {
         BufferedImage image = new BufferedImage(0, 0, 0);
         try{
             image = ImageIO.read(file);
         }catch(IOException e) {
-            //TODO
+            System.out.println("Error converting file to BufferedImage");
             e.printStackTrace();
         }
         return image;

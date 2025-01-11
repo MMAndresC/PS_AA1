@@ -1,15 +1,14 @@
 package com.svalero.ps_aa1.controller;
 
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
+import com.svalero.ps_aa1.task.EditImageTask;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -63,6 +62,7 @@ public class MainController implements Initializable {
 
     @FXML
     private Label brigthnessLabel;
+
     @FXML
     private  Label orderBrightness;
 
@@ -71,6 +71,9 @@ public class MainController implements Initializable {
 
     @FXML
     private Label orderGray;
+
+    @FXML
+    private Label inProcessLabel;
 
     @FXML
     private Button selectFile;
@@ -89,6 +92,12 @@ public class MainController implements Initializable {
 
     @FXML
     private Pane previewPane;
+
+    @FXML
+    private ScrollPane inProcessScroll;
+
+    @FXML
+    private VBox inProcessContainer;
 
     @FXML
     private CheckBox checkColor;
@@ -201,7 +210,18 @@ public class MainController implements Initializable {
     }
 
     public void onClickApplyFilters(){
-
+        applyFilters.setDisable(true);
+        for (int i = 0; i < this.imageToProcess.size(); i++) {
+            File image = imageToProcess.get(i);
+            int brightness = Integer.parseInt(brigthnessLabel.getText());
+            EditImageTask editImageTask = new EditImageTask(image,this.orderFilters, brightness, inProcessContainer, i);
+            Thread thread = new Thread(editImageTask);
+            //Close thread if app exit
+            thread.setDaemon(true);
+            thread.start();
+        }
+        applyFilters.setDisable(false);
+        this.imageToProcess.clear();
     }
 
     public void changeOrder(int index){
