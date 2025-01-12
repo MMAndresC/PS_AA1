@@ -23,8 +23,8 @@ public class MainController implements Initializable {
     private static final String MAIN_DIRECTORY = "EditImages";
     private static final String SAVE_DIRECTORY = "Saved";
 
-    private ArrayList<String> orderFilters = new ArrayList<>();
-    private ArrayList<File> imageToProcess = new ArrayList<>();
+    private final ArrayList<String> orderFilters = new ArrayList<>();
+    private final ArrayList<File> imageToProcess = new ArrayList<>();
 
 
     @Override
@@ -104,6 +104,7 @@ public class MainController implements Initializable {
 
     @FXML
     private CheckBox checkGray;
+
 
     public void onClickSelectFile(){
         Stage stage = (Stage) selectFile.getScene().getWindow();

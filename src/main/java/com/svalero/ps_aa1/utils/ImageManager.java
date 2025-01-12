@@ -7,13 +7,12 @@ import java.io.IOException;
 
 public class ImageManager {
     public BufferedImage toBufferedImage(File file) throws IOException {
-        BufferedImage image = new BufferedImage(0, 0, 0);
         try{
-            image = ImageIO.read(file);
+            return ImageIO.read(file);
         }catch(IOException e) {
             System.out.println("Error converting file to BufferedImage");
             e.printStackTrace();
+            return null;
         }
-        return image;
     }
 }

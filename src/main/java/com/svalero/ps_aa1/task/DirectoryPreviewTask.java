@@ -10,8 +10,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
 public class DirectoryPreviewTask extends Task<Integer> {
-    private File[] images;
-    private Pane pane;
+    private final File[] images;
+    private final Pane pane;
     public DirectoryPreviewTask(File[] images, Pane pane){
         this.images = images;
         this.pane = pane;
