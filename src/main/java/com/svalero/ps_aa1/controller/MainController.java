@@ -23,9 +23,9 @@ public class MainController implements Initializable {
     private static final String MAIN_DIRECTORY = "EditImages";
     private static final String SAVE_DIRECTORY = "Saved";
     private String defaultPath;
-
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
+
 
 
     @Override
@@ -233,6 +233,7 @@ public class MainController implements Initializable {
             thread.setDaemon(true);
             thread.start();
         }
+        this.inProcessScroll.setFitToHeight(true);
         applyFilters.setDisable(false);
         this.imageToProcess.clear();
     }

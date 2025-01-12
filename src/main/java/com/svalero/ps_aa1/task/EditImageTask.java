@@ -3,6 +3,7 @@ package com.svalero.ps_aa1.task;
 import com.svalero.ps_aa1.utils.ImageFilters;
 import com.svalero.ps_aa1.utils.ImageManager;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -48,41 +49,48 @@ public class EditImageTask extends Task<Integer> {
     @Override
     protected Integer call() throws Exception{
         createContainer();
+        int total = 100 * this.filters.size();
         this.imageFilters = new ImageFilters();
         BufferedImage bufferedImage =  this.imageManager.toBufferedImage(this.image);
         //TODO validar imagen
-        for(String filter: this.filters){
+        for(int i = 0; i < this.filters.size(); i++){
             BufferedImage newImage;
+            String filter = this.filters.get(i);
             switch(filter){
                 case "bright":
-                    newImage = this.imageFilters.changeBrightness(this.brightness, bufferedImage, this::updateProgress);
-                    setResultImage(newImage);
+                    newImage = this.imageFilters.changeBrightness(this.brightness, bufferedImage, total, 100 * i, this::updateProgress);
+                    setResultImage(newImage, i);
                     break;
                 case "color":
-                    newImage = this.imageFilters.invertColor(bufferedImage, this::updateProgress);
-                    setResultImage(newImage);
+                    newImage = this.imageFilters.invertColor(bufferedImage, total, 100 * i, this::updateProgress);
+                    setResultImage(newImage, i);
                     break;
                 case "gray":
-                    newImage = this.imageFilters.toGrayScale(bufferedImage, this::updateProgress);
-                    setResultImage(newImage);
+                    newImage = this.imageFilters.toGrayScale(bufferedImage, total, 100 * i, this::updateProgress);
+                    setResultImage(newImage, i);
             }
         }
+        endTask();
         return null;
     }
 
-    private void setResultImage(BufferedImage image) throws IOException, InterruptedException {
+    private void setResultImage(BufferedImage image, int index) {
+        Label newFilter = new Label("");
+        if(index + 1 < this.filters.size())
+            newFilter.setText(getFilterName(index + 1));
         ImageView imageView = this.imageManager.createImageViewFromBufferedImage(image, this.SIZE);
         Platform.runLater(() -> {
             try {
-                this.hBox.getChildren().add(imageView);
+                if(!newFilter.getText().isEmpty())
+                    this.hBox.getChildren().addAll(imageView, newFilter);
+                else
+                    this.hBox.getChildren().add(imageView);
                 this.pane.getChildren().set(0, this.hBox);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
-
-    //TODO da error despues de convertir imagenes si intento abrir de nuevo el explorador peta
     //TODO control de errores
 
     private void createContainer(){
@@ -95,24 +103,37 @@ public class EditImageTask extends Task<Integer> {
             this.hBox.setAlignment(Pos.CENTER_LEFT);
             this.hBox.getChildren().addAll(imageView, filter);
             this.progressBar = new ProgressBar(0);
-            Platform.runLater(() -> this.progressBar.progressProperty().bind(this.progressProperty()));
             this.progressBar.setPrefWidth(200);
             this.status = new Label("Procesando...");
             this.percent = new Label("0");
             this.percent.setAlignment(Pos.CENTER_LEFT);
-            Label symbol = new Label("%");
             this.cancel = new Button("❌");
             this.cancel.setStyle("-fx-text-fill: red;");
             this.cancel.setOnAction(event -> cancelTask());
-            HBox progressBarContainer = new HBox(this.status, progressBar, percent, symbol, this.cancel);
-            progressBarContainer.setAlignment(Pos.BASELINE_CENTER);
+            HBox progressBarContainer = new HBox(this.status, progressBar, percent, this.cancel);
+            progressBarContainer.setAlignment(Pos.CENTER);
             progressBarContainer.setLayoutY(SIZE + 8);
             progressBarContainer.setSpacing(5);
             this.pane = new Pane();
             this.pane.setPrefHeight(SIZE);
             this.pane.setStyle("-fx-border-color: black transparent transparent transparent; -fx-padding: 2 0 0 0;");
             this.pane.getChildren().addAll(this.hBox, progressBarContainer);
-            Platform.runLater(() -> this.vBox.getChildren().add(this.pane));
+            double basicHeight = this.vBox.getPrefHeight();
+            Platform.runLater(() -> {
+                try {
+                    this.progressBar.progressProperty().bind(this.progressProperty());
+                    this.percent.textProperty().bind(
+                            Bindings.createStringBinding(() ->
+                                            String.format("%.0f%%", progressBar.getProgress() * 100),
+                                    progressBar.progressProperty()
+                            )
+                    );
+                    this.vBox.getChildren().add(this.pane);
+                    this.vBox.setPrefHeight(basicHeight + (this.vBox.getChildren().size() * this.SIZE));
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            });
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -123,16 +144,36 @@ public class EditImageTask extends Task<Integer> {
         clean.setOnAction(event -> {
             Button source = (Button) event.getSource();
             Pane pane = (Pane) source.getParent().getParent();
-            Platform.runLater(() -> this.vBox.getChildren().remove(pane));
+            Platform.runLater(() -> {
+                try{
+                    this.vBox.getChildren().remove(pane);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            });
         });
         return clean;
     }
+
+    private void endTask(){
+        Platform.runLater(() -> {
+            try {
+                this.status.setText("Finalizado");
+                Pane parent = (Pane) this.cancel.getParent();
+                parent.getChildren().remove(this.cancel);
+                parent.getChildren().add(createCleanButton());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }//TODO boton de salvar y en placeholder poner cuantas imagenes se estan procesando, quitar cuando una tarea termine
 
     private void cancelTask(){
         this.status.setText("Cancelado");
         Pane parent = (Pane) this.cancel.getParent();
         parent.getChildren().remove(this.cancel);
         parent.getChildren().add(createCleanButton());
+        this.cancel();
     }
 
     private String getFilterName(int index){
