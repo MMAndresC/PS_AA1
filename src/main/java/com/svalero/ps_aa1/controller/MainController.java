@@ -22,6 +22,7 @@ import java.util.ResourceBundle;
 public class MainController implements Initializable {
     private static final String MAIN_DIRECTORY = "EditImages";
     private static final String SAVE_DIRECTORY = "Saved";
+    private String defaultPath;
 
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
@@ -30,9 +31,9 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         //Check if default paths exist
-        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
-        createDirectory(path, pathFiles);
-        path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
+        this.defaultPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
+        createDirectory(defaultPath, pathFiles);
+        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
         createDirectory(path, pathSave);
         //Link label with slider
         brightnessSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -114,7 +115,7 @@ public class MainController implements Initializable {
                 = new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png", "*.jpeg", "*.bmp", "*.gif");
         fileChooser.getExtensionFilters().add(imageFilter);
         //Default directory to show
-        File initialDirectory = new File(pathFiles.getText());
+        File initialDirectory = new File(this.defaultPath);
         if (initialDirectory.exists()) {
             fileChooser.setInitialDirectory(initialDirectory);
         }
@@ -149,7 +150,7 @@ public class MainController implements Initializable {
         Stage stage = (Stage) selectDirectory.getScene().getWindow();
         DirectoryChooser directoryChooser = new DirectoryChooser();
         //Default directory to show
-        File initialDirectory = new File(pathFiles.getText());
+        File initialDirectory = new File(this.defaultPath);
         if (initialDirectory.exists()) {
             directoryChooser.setInitialDirectory(initialDirectory);
         }
