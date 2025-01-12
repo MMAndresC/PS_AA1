@@ -170,12 +170,12 @@ public class MainController implements Initializable {
                 //Close thread if app exit
                 thread.setDaemon(true);
                 task.setOnSucceeded(event -> {
-                    System.out.println("Images loaded");
+                    System.out.println("Preview loaded");
                     this.selectDirectory.setDisable(false);
                     this.selectFile.setDisable(false);
                 });
                 task.setOnFailed(event -> {
-                    System.out.println("Images failed to load");
+                    System.out.println("Preview failed to load");
                     this.selectDirectory.setDisable(false);
                     this.selectFile.setDisable(false);
                 });
@@ -224,11 +224,13 @@ public class MainController implements Initializable {
 
     public void onClickApplyFilters(){
         applyFilters.setDisable(true);
+        inProcessLabel.setText("Editando: " + this.imageToProcess.size() + "  Terminadas: 0");
         for (int i = 0; i < this.imageToProcess.size(); i++) {
             File image = imageToProcess.get(i);
             int brightness = Integer.parseInt(brigthnessLabel.getText());
             EditImageTask editImageTask = new EditImageTask(image,this.orderFilters, brightness, inProcessContainer, i);
             Thread thread = new Thread(editImageTask);
+            controlEditingTask(editImageTask);
             //Close thread if app exit
             thread.setDaemon(true);
             thread.start();
@@ -254,7 +256,28 @@ public class MainController implements Initializable {
         }
     }
 
-    public double centerImage(Image image){
+    private void controlEditingTask(EditImageTask task){
+        task.setOnSucceeded(event -> {
+            inProcessLabel.setText(editProcessLabel());
+        });
+        task.setOnFailed(event -> {
+            System.out.println("Failed task " + event);
+            inProcessLabel.setText(editProcessLabel());
+        });
+        task.setOnCancelled(event -> {
+            inProcessLabel.setText(editProcessLabel());
+        });
+    }
+
+    private String editProcessLabel(){
+        String text = inProcessLabel.getText();
+        String[] splitted = text.split(" ");
+        int actives = Integer.parseInt(splitted[1]) - 1;
+        int finish = Integer.parseInt(splitted[splitted.length - 1]) + 1;
+        return "Editando: " + actives + "  Terminadas: " + finish;
+    }
+
+    private double centerImage(Image image){
         double freeSpace = previewPane.getWidth() - image.getWidth();
         return freeSpace / 2;
     }

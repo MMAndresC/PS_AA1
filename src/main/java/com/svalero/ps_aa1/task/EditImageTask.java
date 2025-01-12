@@ -87,6 +87,7 @@ public class EditImageTask extends Task<Integer> {
                     this.hBox.getChildren().add(imageView);
                 this.pane.getChildren().set(0, this.hBox);
             } catch (Exception e) {
+                System.out.println("1 " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -124,17 +125,19 @@ public class EditImageTask extends Task<Integer> {
                     this.progressBar.progressProperty().bind(this.progressProperty());
                     this.percent.textProperty().bind(
                             Bindings.createStringBinding(() ->
-                                            String.format("%.0f%%", progressBar.getProgress() * 100),
+                                    String.format("%.0f%%", progressBar.getProgress() * 100),
                                     progressBar.progressProperty()
                             )
                     );
                     this.vBox.getChildren().add(this.pane);
                     this.vBox.setPrefHeight(basicHeight + (this.vBox.getChildren().size() * this.SIZE));
                 }catch(Exception e){
+                    System.out.println("2 " +e.getMessage());
                     e.printStackTrace();
                 }
             });
         }catch (Exception e){
+            System.out.println("3 " +e.getMessage());
             e.printStackTrace();
         }
     }
@@ -148,6 +151,7 @@ public class EditImageTask extends Task<Integer> {
                 try{
                     this.vBox.getChildren().remove(pane);
                 }catch (Exception e){
+                    System.out.println("4 " +e.getMessage());
                     e.printStackTrace();
                 }
             });
@@ -163,6 +167,7 @@ public class EditImageTask extends Task<Integer> {
                 parent.getChildren().remove(this.cancel);
                 parent.getChildren().add(createCleanButton());
             } catch (Exception e) {
+                System.out.println("5 " +e.getMessage());
                 e.printStackTrace();
             }
         });

@@ -13,7 +13,7 @@ public class ImageFilters {
         int height = image.getHeight();
 
         for (int i = 0; i < width; i++) {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 70));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 50));
             for (int j = 0; j < height; j++) {
 
                 int[] rgb = image.getRaster().getPixel(i, j, new int[3]);
@@ -37,7 +37,7 @@ public class ImageFilters {
         int width = image.getWidth();
         int height = image.getHeight();
         for (int i = 0; i < width; i++) {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 70));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 50));
             for (int j = 0; j < height; j++) {
 
                 int[] rgb = image.getRaster().getPixel(i, j, new int[3]);
@@ -63,7 +63,7 @@ public class ImageFilters {
         int width = image.getWidth();
         int height = image.getHeight();
         for (int i = 0; i < width; i++) {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 70));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(5, 50));
             for (int j = 0; j < height; j++) {
 
                 int[] rgb = image.getRaster().getPixel(i, j, new int[3]);
