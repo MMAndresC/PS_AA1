@@ -35,8 +35,9 @@ public class EditImageTask extends Task<Integer> {
     Button save;
     String formatName;
     Pane pane;
+    Label pathSave;
     final int SIZE = 120;
-    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage){
+    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage, Label pathSave){
         this.image = image;
         this.filters = filters;
         this.brightness = brightness;
@@ -45,6 +46,7 @@ public class EditImageTask extends Task<Integer> {
         this.imageManager = new ImageManager();
         int index = image.getName().lastIndexOf(".");
         this.formatName = image.getName().substring(index + 1);
+        this.pathSave = pathSave;
     }
     @Override
     protected Integer call() throws Exception{
@@ -53,8 +55,8 @@ public class EditImageTask extends Task<Integer> {
         this.imageFilters = new ImageFilters();
         BufferedImage bufferedImage =  this.imageManager.toBufferedImage(this.image);
         //TODO validar imagen
+        BufferedImage newImage = null;
         for(int i = 0; i < this.filters.size(); i++){
-            BufferedImage newImage;
             String filter = this.filters.get(i);
             switch(filter){
                 case "bright":
@@ -70,7 +72,7 @@ public class EditImageTask extends Task<Integer> {
                     setResultImage(newImage, i);
             }
         }
-        endTask();
+        endTask(newImage);
         return null;
     }
 
@@ -159,15 +161,23 @@ public class EditImageTask extends Task<Integer> {
         return clean;
     }
 
-    private void endTask(){
+    private void endTask(BufferedImage resultImage){
+        this.save = new Button("Guardar");
+        this.save.setOnAction(event -> {
+            try{
+                this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         Platform.runLater(() -> {
             try {
                 this.status.setText("Finalizado");
                 Pane parent = (Pane) this.cancel.getParent();
                 parent.getChildren().remove(this.cancel);
-                parent.getChildren().add(createCleanButton());
+                parent.getChildren().addAll(this.save, createCleanButton());
             } catch (Exception e) {
-                System.out.println("5 " +e.getMessage());
+                System.out.println(e.getMessage());
                 e.printStackTrace();
             }
         });

@@ -122,6 +122,7 @@ public class MainController implements Initializable {
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
             pathFiles.setText(selectedFile.getAbsolutePath());
+            this.imageToProcess.clear();//Clean last selected
             this.imageToProcess.add(selectedFile);
             ImageView imageView = new ImageView();
             //Clear preview
@@ -164,6 +165,7 @@ public class MainController implements Initializable {
             if (imageFiles != null && imageFiles.length > 0) {
                 this.selectDirectory.setDisable(true);
                 this.selectFile.setDisable(true);
+                this.imageToProcess.clear();//Clean last selected
                 Collections.addAll(this.imageToProcess, imageFiles);
                 DirectoryPreviewTask task = new DirectoryPreviewTask(imageFiles, previewPane);
                 Thread thread = new Thread(task);
@@ -228,7 +230,7 @@ public class MainController implements Initializable {
         for (int i = 0; i < this.imageToProcess.size(); i++) {
             File image = imageToProcess.get(i);
             int brightness = Integer.parseInt(brigthnessLabel.getText());
-            EditImageTask editImageTask = new EditImageTask(image,this.orderFilters, brightness, inProcessContainer, i);
+            EditImageTask editImageTask = new EditImageTask(image,this.orderFilters, brightness, inProcessContainer, i, pathSave);
             Thread thread = new Thread(editImageTask);
             controlEditingTask(editImageTask);
             //Close thread if app exit
@@ -237,7 +239,7 @@ public class MainController implements Initializable {
         }
         this.inProcessScroll.setFitToHeight(true);
         applyFilters.setDisable(false);
-        this.imageToProcess.clear();
+        //this.imageToProcess.clear();
     }
 
     public void changeOrder(int index){

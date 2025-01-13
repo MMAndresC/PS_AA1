@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
 public class ImageManager {
     public BufferedImage toBufferedImage(File file) throws IOException {
@@ -50,6 +51,17 @@ public class ImageManager {
         }catch (Exception e){
             e.printStackTrace();
             return  null;
+        }
+    }
+
+    public void saveImage(String path, String formatName, BufferedImage bufferedImage) throws IOException{
+        UUID uuid = UUID.randomUUID();
+        String filename = uuid + "." + formatName;
+        String absolutePath = path + "\\" + filename;
+        try{
+            ImageIO.write(bufferedImage, formatName, new File(absolutePath));
+        }catch(IOException e) {
+            e.printStackTrace();
         }
     }
 }
