@@ -1,9 +1,7 @@
 package com.svalero.ps_aa1.utils;
 
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.util.logging.*;
 
 public class HistoryLogger {
     private static final String MAIN_DIRECTORY = "EditImages";
@@ -17,7 +15,22 @@ public class HistoryLogger {
         try{
             String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY;
             FileHandler historyHandler = new FileHandler(path + "\\" + FILE_LOG, true);
+            historyHandler.setFormatter(new SimpleFormatter() {
+                @Override
+                public synchronized String format(LogRecord record) {
+
+                    return String.format("%1$tF %1$tT - %2$s %n",
+                            record.getMillis(),
+                            record.getMessage());
+                }
+            });
             FileHandler errorHandler = new FileHandler(path + "\\" + FILE_ERROR_LOG, true);
+            errorHandler.setFormatter(new SimpleFormatter() {
+                @Override
+                public synchronized String format(LogRecord record) {
+                    return String.format("%1$tF %1$tT - %2$s%n", record.getMillis(), record.getMessage());
+                }
+            });
             logger.addHandler(historyHandler);
             errorLogger.addHandler(errorHandler);
             //no show in console
@@ -34,4 +47,5 @@ public class HistoryLogger {
     public static void logError(String error) {
         errorLogger.log(Level.SEVERE, error);
     }
+
 }

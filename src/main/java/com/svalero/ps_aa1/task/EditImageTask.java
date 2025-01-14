@@ -78,7 +78,7 @@ public class EditImageTask extends Task<String> {
         }
         endTask(newImage);
         String filtersInString = getFiltersInString();
-        return this.image.getAbsolutePath() + " => /" + filtersInString + "/  " + this.pathSavedImage;
+        return "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - Status: COMPLETADO";
     }
 
     private void setResultImage(BufferedImage image, int index) {
@@ -165,6 +165,7 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
+                System.out.println(event);
                 this.pathSavedImage = this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -190,7 +191,7 @@ public class EditImageTask extends Task<String> {
         parent.getChildren().remove(this.cancel);
         parent.getChildren().add(createCleanButton());
         String filtersInString = getFiltersInString();
-        String message = this.image.getAbsolutePath() + " => /" + filtersInString + "/ CANCELADO ❌ en el " + this.percent.getText();
+        String message = "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: CANCELADO en el " + this.percent.getText();
         this.updateMessage(message);
         this.cancel();
     }
@@ -210,7 +211,7 @@ public class EditImageTask extends Task<String> {
             String text = getFilterName(i);
             result.append(text);
             if(i != this.filters.size() - 1)
-                result.append(" -> ");
+                result.append(" - ");
         }
         return result.toString();
     }
