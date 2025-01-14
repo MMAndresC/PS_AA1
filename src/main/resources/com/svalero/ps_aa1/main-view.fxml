@@ -89,11 +89,11 @@
                <children>
                   <VBox layoutX="14.0" layoutY="14.0" prefHeight="594.0" prefWidth="892.0">
                      <children>
-                        <ScrollPane prefHeight="596.0" prefWidth="892.0">
+                        <ScrollPane fitToWidth="true" prefHeight="596.0" prefWidth="892.0">
                           <content>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="586.0" prefWidth="888.0">
                                  <children>
-                                    <TextArea prefHeight="591.0" prefWidth="890.0" />
+                                    <TextArea fx:id="historyArea" editable="false" prefHeight="591.0" prefWidth="890.0" wrapText="true" />
                                  </children>
                               </AnchorPane>
                           </content>

@@ -15,7 +15,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ResourceBundle;
@@ -24,6 +27,7 @@ public class MainController implements Initializable {
     private static final String MAIN_DIRECTORY = "EditImages";
     private static final String SAVE_DIRECTORY = "Saved";
     private static final String LOGS_DIRECTORY = "Logs";
+    private static final String FILE_LOG = "history.log";
     private String defaultPath;
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
@@ -59,6 +63,7 @@ public class MainController implements Initializable {
             }
             applyFilters.setDisable(this.orderFilters.isEmpty());
         });
+        loadLogFile();
     }
 
     @FXML
@@ -111,6 +116,9 @@ public class MainController implements Initializable {
 
     @FXML
     private CheckBox checkGray;
+
+    @FXML
+    private TextArea historyArea;
 
 
     public void onClickSelectFile(){
@@ -267,6 +275,7 @@ public class MainController implements Initializable {
         task.setOnSucceeded(event -> {
             inProcessLabel.setText(editProcessLabel());
             HistoryLogger.log(task.getValue());
+            loadLogFile();
         });
         task.setOnFailed(event -> {
             inProcessLabel.setText(editProcessLabel());
@@ -276,14 +285,15 @@ public class MainController implements Initializable {
         task.setOnCancelled(event -> {
             inProcessLabel.setText(editProcessLabel());
             HistoryLogger.log(task.getMessage());
+            loadLogFile();
         });
     }
 
     private String editProcessLabel(){
         String text = inProcessLabel.getText();
-        String[] splitted = text.split(" ");
-        int actives = Integer.parseInt(splitted[1]) - 1;
-        int finish = Integer.parseInt(splitted[splitted.length - 1]) + 1;
+        String[] splitText = text.split(" ");
+        int actives = Integer.parseInt(splitText[1]) - 1;
+        int finish = Integer.parseInt(splitText[splitText.length - 1]) + 1;
         return "Editando: " + actives + "  Terminadas: " + finish;
     }
 
@@ -303,6 +313,20 @@ public class MainController implements Initializable {
             boolean directoryCreated = directory.mkdir();
             System.out.println("Directory created successfully at: " + path);
         }
+    }
+    private void loadLogFile() {
+        String logPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY + "\\" + FILE_LOG;
+        File logFile = new File(logPath);
+
+        if (logFile.exists()) {
+            try {
+                String content = new String(Files.readAllBytes(Paths.get(logFile.toURI())));
+                this.historyArea.clear();
+                this.historyArea.appendText(content);
+            } catch (IOException e) {
+                HistoryLogger.logError(e.getMessage());
+            } 
+        } 
     }
 
 
