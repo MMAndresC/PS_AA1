@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -78,6 +79,7 @@ public class EditImageTask extends Task<String> {
         }
         endTask(newImage);
         String filtersInString = getFiltersInString();
+        this.updateMessage(this.image.getName());
         return "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - Status: COMPLETADO";
     }
 
@@ -165,8 +167,17 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                System.out.println(event);
                 this.pathSavedImage = this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
+                Platform.runLater(() -> {
+                    try {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setHeaderText("Notificacion");
+                        alert.setContentText("La edicion de la imagen " + this.image.getName() + " se ha guardado");
+                        alert.show();
+                    } catch (Exception e) {
+                        HistoryLogger.logError(e.getMessage());
+                    }
+                });
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -191,7 +202,7 @@ public class EditImageTask extends Task<String> {
         parent.getChildren().remove(this.cancel);
         parent.getChildren().add(createCleanButton());
         String filtersInString = getFiltersInString();
-        String message = "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: CANCELADO en el " + this.percent.getText();
+        String message = this.image.getName() + "@Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: CANCELADO en el " + this.percent.getText();
         this.updateMessage(message);
         this.cancel();
     }
