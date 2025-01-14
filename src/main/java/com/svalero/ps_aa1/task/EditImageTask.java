@@ -1,5 +1,6 @@
 package com.svalero.ps_aa1.task;
 
+import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.ImageFilters;
 import com.svalero.ps_aa1.utils.ImageManager;
 import javafx.application.Platform;
@@ -19,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class EditImageTask extends Task<Integer> {
+public class EditImageTask extends Task<String> {
     File image;
     ArrayList<String> filters;
     int brightness;
@@ -36,6 +37,7 @@ public class EditImageTask extends Task<Integer> {
     String formatName;
     Pane pane;
     Label pathSave;
+    String pathSavedImage;
     final int SIZE = 120;
     public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage, Label pathSave){
         this.image = image;
@@ -47,14 +49,16 @@ public class EditImageTask extends Task<Integer> {
         int index = image.getName().lastIndexOf(".");
         this.formatName = image.getName().substring(index + 1);
         this.pathSave = pathSave;
+        this.pathSavedImage = " ";
     }
     @Override
-    protected Integer call() throws Exception{
+    protected String call() throws Exception{
         createContainer();
         int total = 100 * this.filters.size();
         this.imageFilters = new ImageFilters();
         BufferedImage bufferedImage =  this.imageManager.toBufferedImage(this.image);
-        //TODO validar imagen
+        if(bufferedImage == null)
+            throw new Exception("Error al cambiar el formato de la imagen");
         BufferedImage newImage = null;
         for(int i = 0; i < this.filters.size(); i++){
             String filter = this.filters.get(i);
@@ -73,7 +77,8 @@ public class EditImageTask extends Task<Integer> {
             }
         }
         endTask(newImage);
-        return null;
+        String filtersInString = getFiltersInString();
+        return this.image.getAbsolutePath() + " => /" + filtersInString + "/  " + this.pathSavedImage;
     }
 
     private void setResultImage(BufferedImage image, int index) {
@@ -89,12 +94,10 @@ public class EditImageTask extends Task<Integer> {
                     this.hBox.getChildren().add(imageView);
                 this.pane.getChildren().set(0, this.hBox);
             } catch (Exception e) {
-                System.out.println("1 " + e.getMessage());
-                e.printStackTrace();
+                HistoryLogger.logError(e.getMessage());
             }
         });
     }
-    //TODO control de errores
 
     private void createContainer(){
         try {
@@ -134,13 +137,11 @@ public class EditImageTask extends Task<Integer> {
                     this.vBox.getChildren().add(this.pane);
                     this.vBox.setPrefHeight(basicHeight + (this.vBox.getChildren().size() * this.SIZE));
                 }catch(Exception e){
-                    System.out.println("2 " +e.getMessage());
-                    e.printStackTrace();
+                    HistoryLogger.logError(e.getMessage());
                 }
             });
         }catch (Exception e){
-            System.out.println("3 " +e.getMessage());
-            e.printStackTrace();
+            HistoryLogger.logError(e.getMessage());
         }
     }
 
@@ -153,8 +154,7 @@ public class EditImageTask extends Task<Integer> {
                 try{
                     this.vBox.getChildren().remove(pane);
                 }catch (Exception e){
-                    System.out.println("4 " +e.getMessage());
-                    e.printStackTrace();
+                    HistoryLogger.logError(e.getMessage());
                 }
             });
         });
@@ -165,7 +165,7 @@ public class EditImageTask extends Task<Integer> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
+                this.pathSavedImage = this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -173,21 +173,25 @@ public class EditImageTask extends Task<Integer> {
         Platform.runLater(() -> {
             try {
                 this.status.setText("Finalizado");
+                percent.textProperty().unbind();
+                percent.setText("✅");
                 Pane parent = (Pane) this.cancel.getParent();
                 parent.getChildren().remove(this.cancel);
                 parent.getChildren().addAll(this.save, createCleanButton());
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+            }catch (Exception e){
+                HistoryLogger.logError(e.getMessage());
             }
         });
-    }//TODO boton de salvar y en placeholder poner cuantas imagenes se estan procesando, quitar cuando una tarea termine
+    }
 
     private void cancelTask(){
         this.status.setText("Cancelado");
         Pane parent = (Pane) this.cancel.getParent();
         parent.getChildren().remove(this.cancel);
         parent.getChildren().add(createCleanButton());
+        String filtersInString = getFiltersInString();
+        String message = this.image.getAbsolutePath() + " => /" + filtersInString + "/ CANCELADO ❌ en el " + this.percent.getText();
+        this.updateMessage(message);
         this.cancel();
     }
 
@@ -198,5 +202,16 @@ public class EditImageTask extends Task<Integer> {
             case "color" -> "Invertir color";
             default -> "Escala grises";
         };
+    }
+
+    private String getFiltersInString(){
+        StringBuilder result = new StringBuilder();;
+        for(int i = 0; i < this.filters.size(); i++){
+            String text = getFilterName(i);
+            result.append(text);
+            if(i != this.filters.size() - 1)
+                result.append(" -> ");
+        }
+        return result.toString();
     }
 }

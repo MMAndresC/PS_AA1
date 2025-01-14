@@ -2,6 +2,7 @@ package com.svalero.ps_aa1.controller;
 
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
 import com.svalero.ps_aa1.task.EditImageTask;
+import com.svalero.ps_aa1.utils.HistoryLogger;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -22,6 +23,7 @@ import java.util.ResourceBundle;
 public class MainController implements Initializable {
     private static final String MAIN_DIRECTORY = "EditImages";
     private static final String SAVE_DIRECTORY = "Saved";
+    private static final String LOGS_DIRECTORY = "Logs";
     private String defaultPath;
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
@@ -32,9 +34,13 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         //Check if default paths exist
         this.defaultPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
-        createDirectory(defaultPath, pathFiles);
-        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
-        createDirectory(path, pathSave);
+        createDirectory(defaultPath);
+        pathFiles.setText(defaultPath);
+        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY;
+        createDirectory(path);
+        path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
+        createDirectory(path);
+        pathSave.setText(path);
         //Link label with slider
         brightnessSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             brigthnessLabel.setText(String.valueOf(newValue.intValue()));
@@ -239,7 +245,6 @@ public class MainController implements Initializable {
         }
         this.inProcessScroll.setFitToHeight(true);
         applyFilters.setDisable(false);
-        //this.imageToProcess.clear();
     }
 
     public void changeOrder(int index){
@@ -261,13 +266,16 @@ public class MainController implements Initializable {
     private void controlEditingTask(EditImageTask task){
         task.setOnSucceeded(event -> {
             inProcessLabel.setText(editProcessLabel());
+            HistoryLogger.log(task.getValue());
         });
         task.setOnFailed(event -> {
-            System.out.println("Failed task " + event);
             inProcessLabel.setText(editProcessLabel());
+            Throwable error = task.getException();
+            HistoryLogger.logError(error.getMessage());
         });
         task.setOnCancelled(event -> {
             inProcessLabel.setText(editProcessLabel());
+            HistoryLogger.log(task.getMessage());
         });
     }
 
@@ -289,13 +297,12 @@ public class MainController implements Initializable {
         return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".gif");
     }
 
-    public void createDirectory(String path, Label label){
+    public void createDirectory(String path){
         File directory = new File(path);
         if (!directory.exists()) {
             boolean directoryCreated = directory.mkdir();
             System.out.println("Directory created successfully at: " + path);
         }
-        label.setText(directory.getAbsolutePath());
     }
 
 
