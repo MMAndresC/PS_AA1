@@ -54,6 +54,10 @@ public class EditImageTask extends Task<String> {
     }
     @Override
     protected String call() throws Exception{
+        //if fails to have task information
+        String filtersInString = getFiltersInString();
+        String message = this.image.getName() + "@" + "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: FALLIDO";
+        this.updateMessage(message);
         createContainer();
         int total = 100 * this.filters.size();
         this.imageFilters = new ImageFilters();
@@ -78,7 +82,6 @@ public class EditImageTask extends Task<String> {
             }
         }
         endTask(newImage);
-        String filtersInString = getFiltersInString();
         this.updateMessage(this.image.getName());
         return "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - Status: COMPLETADO";
     }
@@ -202,8 +205,8 @@ public class EditImageTask extends Task<String> {
         parent.getChildren().remove(this.cancel);
         parent.getChildren().add(createCleanButton());
         String filtersInString = getFiltersInString();
-        String message = this.image.getName() + "@Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: CANCELADO en el " + this.percent.getText();
-        this.updateMessage(message);
+        String message = "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: CANCELADO en el " + this.percent.getText();
+        this.updateMessage(this.image.getName() + "@" + message);
         this.cancel();
     }
 

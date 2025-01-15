@@ -283,11 +283,15 @@ public class MainController implements Initializable {
         });
         task.setOnFailed(event -> {
             inProcessLabel.setText(editProcessLabel());
+            String message = task.getMessage().split("@")[1];
+            HistoryLogger.log(message);
+            loadLogFile();
+            String fileName = task.getMessage().split("@")[0];
             Throwable error = task.getException();
             HistoryLogger.logError(error.getMessage());
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText("Notificacion");
-            alert.setContentText("Error en la edición de la imagen ");
+            alert.setContentText("Error en la edición de la imagen " + fileName);
             alert.show();
         });
         task.setOnCancelled(event -> {
@@ -302,7 +306,6 @@ public class MainController implements Initializable {
             alert.show();
         });
     }
-//TODO añadir las imagnes que fallan al log
     private String editProcessLabel(){
         String text = inProcessLabel.getText();
         String[] splitText = text.split(" ");
