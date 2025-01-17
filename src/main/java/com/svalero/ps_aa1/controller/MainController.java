@@ -1,8 +1,11 @@
 package com.svalero.ps_aa1.controller;
 
+import com.svalero.ps_aa1.service.EditingService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
 import com.svalero.ps_aa1.task.EditImageTask;
 import com.svalero.ps_aa1.utils.HistoryLogger;
+import com.svalero.ps_aa1.utils.LoadLogFile;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -23,48 +26,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ResourceBundle;
 
+import static com.svalero.ps_aa1.constants.Constants.*;
+
 public class MainController implements Initializable {
-    private static final String MAIN_DIRECTORY = "EditImages";
-    private static final String SAVE_DIRECTORY = "Saved";
-    private static final String LOGS_DIRECTORY = "Logs";
-    private static final String FILE_LOG = "history.log";
+
     private String defaultPath;
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
-
-
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        //Check if default paths exist
-        this.defaultPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
-        createDirectory(defaultPath);
-        pathFiles.setText(defaultPath);
-        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY;
-        createDirectory(path);
-        path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
-        createDirectory(path);
-        pathSave.setText(path);
-        //Link label with slider
-        brightnessSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            brigthnessLabel.setText(String.valueOf(newValue.intValue()));
-            int index = this.orderFilters.indexOf("bright");
-            if(newValue.intValue() == 0){
-                if(index != -1) {
-                    changeOrder(index + 1);
-                    this.orderFilters.remove(index);
-                    orderBrightness.setText("");
-                }
-            }else{
-                if(index == -1) {
-                    this.orderFilters.add("bright");
-                    orderBrightness.setText(String.valueOf(this.orderFilters.size()));
-                }
-            }
-            applyFilters.setDisable(this.orderFilters.isEmpty());
-        });
-        loadLogFile();
-    }
 
     @FXML
     private Label pathFiles;
@@ -120,6 +88,37 @@ public class MainController implements Initializable {
     @FXML
     private TextArea historyArea;
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        //Check if default paths exist
+        this.defaultPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
+        createDirectory(defaultPath);
+        pathFiles.setText(defaultPath);
+        String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY;
+        createDirectory(path);
+        path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
+        createDirectory(path);
+        pathSave.setText(path);
+        //Link label with slider
+        brightnessSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            brigthnessLabel.setText(String.valueOf(newValue.intValue()));
+            int index = this.orderFilters.indexOf("bright");
+            if(newValue.intValue() == 0){
+                if(index != -1) {
+                    changeOrder(index + 1);
+                    this.orderFilters.remove(index);
+                    orderBrightness.setText("");
+                }
+            }else{
+                if(index == -1) {
+                    this.orderFilters.add("bright");
+                    orderBrightness.setText(String.valueOf(this.orderFilters.size()));
+                }
+            }
+            applyFilters.setDisable(this.orderFilters.isEmpty());
+        });
+        LoadLogFile.show(historyArea);
+    }
 
     public void onClickSelectFile(){
         Stage stage = (Stage) selectFile.getScene().getWindow();
@@ -241,16 +240,15 @@ public class MainController implements Initializable {
     public void onClickApplyFilters(){
         applyFilters.setDisable(true);
         inProcessLabel.setText("Editando: " + this.imageToProcess.size() + "  Terminadas: 0");
-        for (int i = 0; i < this.imageToProcess.size(); i++) {
-            File image = imageToProcess.get(i);
-            int brightness = Integer.parseInt(brigthnessLabel.getText());
-            EditImageTask editImageTask = new EditImageTask(image,this.orderFilters, brightness, inProcessContainer, i, pathSave);
-            Thread thread = new Thread(editImageTask);
-            controlEditingTask(editImageTask);
-            //Close thread if app exit
-            thread.setDaemon(true);
-            thread.start();
-        }
+        //Init service
+        EditingService service = new EditingService(2, this.imageToProcess,this.orderFilters);
+        //Select stage
+        Stage stage = (Stage) inProcessScroll.getScene().getWindow();
+        //Event close stage shutdown executors service
+        stage.setOnCloseRequest(event -> service.shutdown());
+        //TODO eventos del service
+        if(!service.isRunning())
+            service.restart();
         this.inProcessScroll.setFitToHeight(true);
         applyFilters.setDisable(false);
     }
@@ -271,49 +269,6 @@ public class MainController implements Initializable {
         }
     }
 
-    private void controlEditingTask(EditImageTask task){
-        task.setOnSucceeded(event -> {
-            inProcessLabel.setText(editProcessLabel());
-            HistoryLogger.log(task.getValue());
-            loadLogFile();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("Notificacion");
-            alert.setContentText("La edición de la imagen " + task.getMessage() + " se ha completado con exito");
-            alert.show();
-        });
-        task.setOnFailed(event -> {
-            inProcessLabel.setText(editProcessLabel());
-            String message = task.getMessage().split("@")[1];
-            HistoryLogger.log(message);
-            loadLogFile();
-            String fileName = task.getMessage().split("@")[0];
-            Throwable error = task.getException();
-            HistoryLogger.logError(error.getMessage());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Notificacion");
-            alert.setContentText("Error en la edición de la imagen " + fileName);
-            alert.show();
-        });
-        task.setOnCancelled(event -> {
-            inProcessLabel.setText(editProcessLabel());
-            String message = task.getMessage().split("@")[1];
-            HistoryLogger.log(message);
-            loadLogFile();
-            String fileName = task.getMessage().split("@")[0];
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setHeaderText("Notificacion");
-            alert.setContentText("La edición de la imagen " + fileName + " ha sido cancelada");
-            alert.show();
-        });
-    }
-    private String editProcessLabel(){
-        String text = inProcessLabel.getText();
-        String[] splitText = text.split(" ");
-        int actives = Integer.parseInt(splitText[1]) - 1;
-        int finish = Integer.parseInt(splitText[splitText.length - 1]) + 1;
-        return "Editando: " + actives + "  Terminadas: " + finish;
-    }
-
     private double centerImage(Image image){
         double freeSpace = previewPane.getWidth() - image.getWidth();
         return freeSpace / 2;
@@ -331,20 +286,7 @@ public class MainController implements Initializable {
             System.out.println("Directory created successfully at: " + path);
         }
     }
-    private void loadLogFile() {
-        String logPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY + "\\" + FILE_LOG;
-        File logFile = new File(logPath);
 
-        if (logFile.exists()) {
-            try {
-                String content = new String(Files.readAllBytes(Paths.get(logFile.toURI())));
-                this.historyArea.clear();
-                this.historyArea.appendText(content);
-            } catch (IOException e) {
-                HistoryLogger.logError(e.getMessage());
-            } 
-        } 
-    }
 
 
 }
