@@ -1,6 +1,8 @@
 package com.svalero.ps_aa1.controller;
 
 import com.svalero.ps_aa1.task.LoadingTask;
+import com.svalero.ps_aa1.utils.HistoryLogger;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -41,8 +43,8 @@ public class SplashScreenController implements Initializable{
             stage.setScene(newScene);
 
         } catch (Exception e) {
-            //TODO quitar esto y cerrar si falla
-            e.printStackTrace();
+            HistoryLogger.logError(e.getMessage());
+            Platform.exit();
         }
     }
 
