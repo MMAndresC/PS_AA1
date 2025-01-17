@@ -3,11 +3,9 @@ package com.svalero.ps_aa1.utils;
 import java.io.IOException;
 import java.util.logging.*;
 
+import static com.svalero.ps_aa1.constants.Constants.*;
+
 public class HistoryLogger {
-    private static final String MAIN_DIRECTORY = "EditImages";
-    private static final String LOGS_DIRECTORY = "Logs";
-    private static final String FILE_LOG = "history.log";
-    private static  final String FILE_ERROR_LOG = "errors.log";
     private static final Logger logger = Logger.getLogger(HistoryLogger.class.getName());
     private static final Logger errorLogger = Logger.getLogger("ErrorLogger");
 

@@ -37,10 +37,10 @@ public class EditImageTask extends Task<String> {
     Button save;
     String formatName;
     Pane pane;
-    Label pathSave;
+    String pathSave;
     String pathSavedImage;
     final int SIZE = 120;
-    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage, Label pathSave){
+    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage, String pathSave){
         this.image = image;
         this.filters = filters;
         this.brightness = brightness;
@@ -170,7 +170,7 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                this.pathSavedImage = this.imageManager.saveImage(this.pathSave.getText(), this.formatName, resultImage);
+                this.pathSavedImage = this.imageManager.saveImage(this.pathSave, this.formatName, resultImage);
                 Platform.runLater(() -> {
                     try {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
