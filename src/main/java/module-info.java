@@ -11,4 +11,6 @@ module com.svalero.ps_aa1 {
     exports com.svalero.ps_aa1;
     exports com.svalero.ps_aa1.controller;
     opens com.svalero.ps_aa1.controller to javafx.fxml;
+    exports com.svalero.ps_aa1.constants;
+    opens com.svalero.ps_aa1.constants to javafx.fxml;
 }
