@@ -38,7 +38,7 @@ public class SplashScreenController implements Initializable{
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/svalero/ps_aa1/main-view.fxml"));
             Parent newRoot = loader.load();
-            Scene newScene = new Scene(newRoot,918,655);
+            Scene newScene = new Scene(newRoot,918,710);
             Stage stage = (Stage) initBar.getScene().getWindow();
             stage.setScene(newScene);
 
