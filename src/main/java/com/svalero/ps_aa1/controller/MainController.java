@@ -240,13 +240,32 @@ public class MainController implements Initializable {
     public void onClickApplyFilters(){
         applyFilters.setDisable(true);
         inProcessLabel.setText("Editando: " + this.imageToProcess.size() + "  Terminadas: 0");
+        int brightness = Integer.parseInt(brigthnessLabel.getText());
+        String path = pathSave.getText().trim();
         //Init service
-        EditingService service = new EditingService(2, this.imageToProcess,this.orderFilters);
+        EditingService service = new EditingService(
+                2, this.imageToProcess,this.orderFilters, brightness, path, historyArea, inProcessContainer, inProcessLabel
+        );
         //Select stage
         Stage stage = (Stage) inProcessScroll.getScene().getWindow();
         //Event close stage shutdown executors service
         stage.setOnCloseRequest(event -> service.shutdown());
         //TODO eventos del service
+        service.setOnSucceeded(event -> {
+            ArrayList<String> result = service.getValue();
+            System.out.println("servicio succed" + result.size());
+
+        });
+
+        service.setOnFailed(event -> {
+            Throwable exception = service.getException();
+            System.out.println("servicio failed"+ exception.getMessage());
+        });
+
+        service.setOnRunning(event -> System.out.println("running"));
+
+        service.setOnCancelled(event -> System.out.println("cancelado"));
+        /////////////////////////
         if(!service.isRunning())
             service.restart();
         this.inProcessScroll.setFitToHeight(true);

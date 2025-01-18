@@ -8,7 +8,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
-import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -25,21 +24,30 @@ public class EditingService extends Service<ArrayList<String>> {
     private ArrayList<String> filters = new ArrayList<>();
     private final ExecutorService executorService;
     private EditImageTask editImageTask;
-    @FXML
-    private Label brigthnessLabel;
-    @FXML
-    private Label pathSave;
-    @FXML
-    private Label inProcessLabel;
-    @FXML
-    private TextArea historyArea;
-    @FXML
-    private VBox inProcessContainer;
+    private final int brightness;
+    private final String pathSave;
+    private final TextArea historyArea;
+    private final VBox inProcessContainer;
+    private final Label inProcessLabel;
 
-    public EditingService(int numThreads, ArrayList<File> imagesToProcess, ArrayList<String> filters){
+    public EditingService(
+            int numThreads,
+            ArrayList<File> imagesToProcess,
+            ArrayList<String> filters,
+            int brightness,
+            String pathSave,
+            TextArea historyArea,
+            VBox inProcessContainer,
+            Label inProcessLabel
+    ){
         this.numThreads = numThreads;
         this.imagesToProcess = imagesToProcess;
         this.filters = filters;
+        this.brightness = brightness;
+        this.pathSave = pathSave;
+        this.historyArea = historyArea;
+        this.inProcessContainer = inProcessContainer;
+        this.inProcessLabel = inProcessLabel;
         this.executorService = Executors.newFixedThreadPool(this.numThreads);
     }
     @Override
@@ -47,15 +55,14 @@ public class EditingService extends Service<ArrayList<String>> {
         return new Task<ArrayList<String>>() {
             @Override
             protected ArrayList<String> call() throws Exception {
-                ArrayList<String> result = new ArrayList<>();
+                ArrayList<String> results = new ArrayList<>();
                 for (int i = 0; i < imagesToProcess.size(); i++) {
                     File image = imagesToProcess.get(i);
-                    int brightness = Integer.parseInt(brigthnessLabel.getText());
-                    EditImageTask task = new EditImageTask(image, filters, brightness, inProcessContainer, i, pathSave.getText());
+                    EditImageTask task = new EditImageTask(image, filters, brightness, inProcessContainer, i, pathSave);
                     controlStateTask(task);
                     executorService.submit(task);
                 }
-                return result;
+                return results;
             }
         };
     };
@@ -63,17 +70,18 @@ public class EditingService extends Service<ArrayList<String>> {
         task.stateProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
+                String content = "";
+                String fileName = "";
+
                 switch (newState) {
 
                     case SUCCEEDED:
-                        System.out.println("SUCCEEDED");
+                        System.out.println("SUCCEEDED " + task.getValue());
                         inProcessLabel.setText(editProcessLabel());
                         HistoryLogger.log(task.getValue());
                         LoadLogFile.show(historyArea);
-                        Alert alertOk = new Alert(Alert.AlertType.INFORMATION);
-                        alertOk.setHeaderText("Notificacion");
-                        alertOk.setContentText("La edición de la imagen " + task.getMessage() + " se ha completado con exito");
-                        alertOk.show();
+                        content = "La edición de la imagen " + task.getMessage() + " se ha completado con exito";
+                        showAlert(Alert.AlertType.INFORMATION, content);
                         break;
 
                     case FAILED:
@@ -82,13 +90,11 @@ public class EditingService extends Service<ArrayList<String>> {
                         String message = task.getMessage().split("@")[1];
                         HistoryLogger.log(message);
                         LoadLogFile.show(historyArea);
-                        String fileName = task.getMessage().split("@")[0];
+                        fileName = task.getMessage().split("@")[0];
                         Throwable error = task.getException();
                         HistoryLogger.logError(error.getMessage());
-                        Alert alertFail = new Alert(Alert.AlertType.ERROR);
-                        alertFail.setHeaderText("Notificacion");
-                        alertFail.setContentText("Error en la edición de la imagen " + fileName);
-                        alertFail.show();
+                        content = "Error en la edición de la imagen " + fileName;
+                        showAlert(Alert.AlertType.ERROR, content);
                         break;
 
                     case CANCELLED:
@@ -97,15 +103,20 @@ public class EditingService extends Service<ArrayList<String>> {
                         String msg = task.getMessage().split("@")[1];
                         HistoryLogger.log(msg);
                         LoadLogFile.show(historyArea);
-                        String filename = task.getMessage().split("@")[0];
-                        Alert alertCancel = new Alert(Alert.AlertType.WARNING);
-                        alertCancel.setHeaderText("Notificacion");
-                        alertCancel.setContentText("La edición de la imagen " + filename + " ha sido cancelada");
-                        alertCancel.show();
+                        fileName = task.getMessage().split("@")[0];
+                        content = "La edición de la imagen " + fileName + " ha sido cancelada";
+                        showAlert(Alert.AlertType.WARNING, content);
                         break;
                 }
             }
         });
+    }
+
+    private void showAlert(Alert.AlertType type, String contentText){
+        Alert alert = new Alert(type);
+        alert.setHeaderText("Notificacion");
+        alert.setContentText(contentText);
+        alert.show();
     }
 
     private String editProcessLabel(){

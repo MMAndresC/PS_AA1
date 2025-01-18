@@ -54,6 +54,7 @@ public class EditImageTask extends Task<String> {
     }
     @Override
     protected String call() throws Exception{
+        System.out.println("begin task");
         //if fails to have task information
         String filtersInString = getFiltersInString();
         String message = this.image.getName() + "@" + "Origen: " + this.image.getAbsolutePath() + " - Filtros: " + filtersInString + " - " + "Status: FALLIDO";
