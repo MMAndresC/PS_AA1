@@ -24,6 +24,7 @@ import java.util.ArrayList;
 public class EditImageTask extends Task<String> {
     File image;
     ArrayList<String> filters;
+    int index;
     int brightness;
     int numImage;
     VBox vBox;
@@ -125,6 +126,7 @@ public class EditImageTask extends Task<String> {
             progressBarContainer.setAlignment(Pos.CENTER);
             progressBarContainer.setLayoutY(SIZE + 8);
             progressBarContainer.setSpacing(5);
+            progressBarContainer.setId("hbox_" + this.numImage);
             this.pane = new Pane();
             this.pane.setPrefHeight(SIZE);
             this.pane.setStyle("-fx-border-color: black transparent transparent transparent; -fx-padding: 2 0 0 0;");
@@ -228,5 +230,8 @@ public class EditImageTask extends Task<String> {
                 result.append(" - ");
         }
         return result.toString();
+    }
+    public int getNumImage() {
+        return this.numImage;
     }
 }

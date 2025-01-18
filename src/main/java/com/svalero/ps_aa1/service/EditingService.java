@@ -3,14 +3,15 @@ package com.svalero.ps_aa1.service;
 import com.svalero.ps_aa1.task.EditImageTask;
 import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 import java.io.File;
@@ -96,6 +97,7 @@ public class EditingService extends Service<ArrayList<String>> {
                         break;
 
                     case FAILED:
+                        setFailedUi(task.getNumImage());
                         inProcessLabel.setText(editProcessLabel(false));
                         String message = task.getMessage().split("@")[1];
                         HistoryLogger.log(message);
@@ -121,6 +123,35 @@ public class EditingService extends Service<ArrayList<String>> {
         });
     }
 
+    private void setFailedUi(int index){
+        try{
+            Pane pane = (Pane) inProcessContainer.getChildren().get(index);
+            HBox hbox = (HBox) pane.getChildren().getLast();
+            Label label = (Label) hbox.getChildren().getFirst();
+            label.setText("Fallido");
+            ProgressBar bar = (ProgressBar) hbox.getChildren().get(1);
+            bar.progressProperty().unbind();
+            bar.setProgress(0);
+            Label percent = (Label) hbox.getChildren().get(2);
+            percent.textProperty().unbind();
+            percent.setText("0%");
+            Button clean = (Button) hbox.getChildren().get(3);
+            clean.setStyle("-fx-text-fill: black;");
+            clean.setText("Limpiar");
+            clean.setOnAction(event -> {
+                Platform.runLater(() -> {
+                    try{
+                        inProcessContainer.getChildren().remove(pane);
+                    }catch (Exception e){
+                        HistoryLogger.logError(e.getMessage());
+                    }
+                });
+            });
+        }catch(Exception e){
+            System.out.println("Failed to edit UI on failed task");
+            HistoryLogger.logError("Failed to edit UI on failed task");
+        }
+    }
     private void showAlert(Alert.AlertType type, String contentText){
         Alert alert = new Alert(type);
         alert.setHeaderText("Notificacion");
