@@ -15,6 +15,8 @@ import javafx.scene.layout.VBox;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -56,12 +58,20 @@ public class EditingService extends Service<ArrayList<String>> {
             @Override
             protected ArrayList<String> call() throws Exception {
                 ArrayList<String> results = new ArrayList<>();
+                List<Callable<String>> tasks = new ArrayList<>();
                 for (int i = 0; i < imagesToProcess.size(); i++) {
                     File image = imagesToProcess.get(i);
                     EditImageTask task = new EditImageTask(image, filters, brightness, inProcessContainer, i, pathSave);
+                    //Set listener to check task state
                     controlStateTask(task);
-                    executorService.submit(task);
+                    //To adapt types Callable <-> EditImageTask, invokeAll admit Callables
+                    tasks.add(() -> {
+                        task.run();
+                        return task.get();
+                    });
                 }
+                //Wait all tasks end before service end
+                executorService.invokeAll(tasks);
                 return results;
             }
         };
@@ -72,12 +82,13 @@ public class EditingService extends Service<ArrayList<String>> {
             public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
                 String content = "";
                 String fileName = "";
-
+                System.out.println("Task state: " + newState);
                 switch (newState) {
-
+                    case RUNNING:
+                        inProcessLabel.setText(editProcessLabel(true));
+                        break;
                     case SUCCEEDED:
-                        System.out.println("SUCCEEDED " + task.getValue());
-                        inProcessLabel.setText(editProcessLabel());
+                        inProcessLabel.setText(editProcessLabel(false));
                         HistoryLogger.log(task.getValue());
                         LoadLogFile.show(historyArea);
                         content = "La edición de la imagen " + task.getMessage() + " se ha completado con exito";
@@ -85,8 +96,7 @@ public class EditingService extends Service<ArrayList<String>> {
                         break;
 
                     case FAILED:
-                        System.out.println("FAILED");
-                        inProcessLabel.setText(editProcessLabel());
+                        inProcessLabel.setText(editProcessLabel(false));
                         String message = task.getMessage().split("@")[1];
                         HistoryLogger.log(message);
                         LoadLogFile.show(historyArea);
@@ -98,8 +108,7 @@ public class EditingService extends Service<ArrayList<String>> {
                         break;
 
                     case CANCELLED:
-                        System.out.println("CANCELLED");
-                        inProcessLabel.setText(editProcessLabel());
+                        inProcessLabel.setText(editProcessLabel(false));
                         String msg = task.getMessage().split("@")[1];
                         HistoryLogger.log(msg);
                         LoadLogFile.show(historyArea);
@@ -119,9 +128,14 @@ public class EditingService extends Service<ArrayList<String>> {
         alert.show();
     }
 
-    private String editProcessLabel(){
+    private String editProcessLabel(boolean isBeginning){
         String text = inProcessLabel.getText();
         String[] splitText = text.split(" ");
+        if(isBeginning){
+            int actives = Integer.parseInt(splitText[1]) + 1;
+            String finish = splitText[splitText.length - 1];
+            return "Editando: " + actives + "  Terminadas: " + finish;
+        }
         int actives = Integer.parseInt(splitText[1]) - 1;
         int finish = Integer.parseInt(splitText[splitText.length - 1]) + 1;
         return "Editando: " + actives + "  Terminadas: " + finish;
@@ -129,7 +143,9 @@ public class EditingService extends Service<ArrayList<String>> {
 
 
     public void shutdown(){
-        this.executorService.shutdown();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdownNow();
+        }
     }
 
 

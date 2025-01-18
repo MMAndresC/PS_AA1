@@ -2,10 +2,11 @@ package com.svalero.ps_aa1.controller;
 
 import com.svalero.ps_aa1.service.EditingService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
-import com.svalero.ps_aa1.task.EditImageTask;
 import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
-import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -18,21 +19,43 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ResourceBundle;
 
 import static com.svalero.ps_aa1.constants.Constants.*;
+import static javafx.concurrent.Worker.State.*;
 
 public class MainController implements Initializable {
 
     private String defaultPath;
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
+
+    @FXML
+    private Button selectFile;
+
+    @FXML
+    private Button selectDirectory;
+
+    @FXML
+    private Button selectSavedPath;
+
+    @FXML
+    private Button applyFilters;
+
+    @FXML
+    private Button increaseButton;
+
+    @FXML
+    private Button decreaseButton;
+
+    @FXML
+    private CheckBox checkColor;
+
+    @FXML
+    private CheckBox checkGray;
 
     @FXML
     private Label pathFiles;
@@ -56,37 +79,26 @@ public class MainController implements Initializable {
     private Label inProcessLabel;
 
     @FXML
-    private Button selectFile;
+    private Label numThreadsLabel;
 
     @FXML
-    private Button selectDirectory;
-
-    @FXML
-    private Button selectSavedPath;
-
-    @FXML
-    private Button applyFilters;
-
-    @FXML
-    private Slider brightnessSlider;
+    private Label totalLabel;
 
     @FXML
     private Pane previewPane;
 
     @FXML
+    private Slider brightnessSlider;
+
+    @FXML
     private ScrollPane inProcessScroll;
+
+    @FXML
+    private TextArea historyArea;
 
     @FXML
     private VBox inProcessContainer;
 
-    @FXML
-    private CheckBox checkColor;
-
-    @FXML
-    private CheckBox checkGray;
-
-    @FXML
-    private TextArea historyArea;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -116,6 +128,7 @@ public class MainController implements Initializable {
                 }
             }
             applyFilters.setDisable(this.orderFilters.isEmpty());
+
         });
         LoadLogFile.show(historyArea);
     }
@@ -239,37 +252,58 @@ public class MainController implements Initializable {
 
     public void onClickApplyFilters(){
         applyFilters.setDisable(true);
-        inProcessLabel.setText("Editando: " + this.imageToProcess.size() + "  Terminadas: 0");
+        totalLabel.setText("Total: " + this.imageToProcess.size());
         int brightness = Integer.parseInt(brigthnessLabel.getText());
         String path = pathSave.getText().trim();
+        int numThreads = Integer.parseInt(numThreadsLabel.getText());
         //Init service
         EditingService service = new EditingService(
-                2, this.imageToProcess,this.orderFilters, brightness, path, historyArea, inProcessContainer, inProcessLabel
+                numThreads, this.imageToProcess,this.orderFilters, brightness, path, historyArea, inProcessContainer, inProcessLabel
         );
         //Select stage
         Stage stage = (Stage) inProcessScroll.getScene().getWindow();
         //Event close stage shutdown executors service
-        stage.setOnCloseRequest(event -> service.shutdown());
-        //TODO eventos del service
-        service.setOnSucceeded(event -> {
-            ArrayList<String> result = service.getValue();
-            System.out.println("servicio succed" + result.size());
-
+        stage.setOnCloseRequest(event -> {
+            service.shutdown();
+            service.cancel();
         });
-
-        service.setOnFailed(event -> {
-            Throwable exception = service.getException();
-            System.out.println("servicio failed"+ exception.getMessage());
-        });
-
-        service.setOnRunning(event -> System.out.println("running"));
-
-        service.setOnCancelled(event -> System.out.println("cancelado"));
-        /////////////////////////
+        controlStateService(service);
         if(!service.isRunning())
             service.restart();
         this.inProcessScroll.setFitToHeight(true);
-        applyFilters.setDisable(false);
+    }
+
+    public void onIncreaseNumThreads(){
+        int currentValue = Integer.parseInt(numThreadsLabel.getText());
+        if(currentValue < 10) {
+            numThreadsLabel.setText(String.valueOf(currentValue + 1));
+            decreaseButton.setDisable(false);
+        }
+        if(currentValue + 1 == 10) increaseButton.setDisable(true);
+    }
+
+    public void onDecreaseNumThreads(){
+        int currentValue = Integer.parseInt(numThreadsLabel.getText());
+        if(currentValue > 1) {
+            numThreadsLabel.setText(String.valueOf(currentValue - 1));
+            increaseButton.setDisable(false);
+        }
+        if(currentValue - 1 == 1) decreaseButton.setDisable(true);
+    }
+
+    public void controlStateService(EditingService service){
+        service.stateProperty().addListener(new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
+                System.out.println("Service state: " + newState);
+                if(newState != RUNNING && newState != SCHEDULED)
+                    applyFilters.setDisable(false);
+                if(newState == FAILED){
+                    System.out.println("Service failed, shutdown it now");
+                    service.shutdown();
+                }
+            }
+        });
     }
 
     public void changeOrder(int index){
