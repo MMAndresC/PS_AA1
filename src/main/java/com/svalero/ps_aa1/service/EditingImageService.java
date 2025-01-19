@@ -1,5 +1,6 @@
 package com.svalero.ps_aa1.service;
 
+import com.svalero.ps_aa1.interfaces.ShutdownExecutorService;
 import com.svalero.ps_aa1.task.EditImageTask;
 import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
@@ -21,7 +22,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class EditingService extends Service<ArrayList<String>> {
+public class EditingImageService extends Service<ArrayList<String>> implements ShutdownExecutorService {
     private ArrayList<File> imagesToProcess = new ArrayList<>();
     private ArrayList<String> filters = new ArrayList<>();
     private final ExecutorService executorService;
@@ -32,7 +33,7 @@ public class EditingService extends Service<ArrayList<String>> {
     private final VBox inProcessContainer;
     private final Label inProcessLabel;
 
-    public EditingService(
+    public EditingImageService(
             int numThreads,
             ArrayList<File> imagesToProcess,
             ArrayList<String> filters,
@@ -170,13 +171,18 @@ public class EditingService extends Service<ArrayList<String>> {
         return "Editando: " + actives + "  Terminadas: " + finish;
     }
 
-
-    public void shutdown(){
+    @Override
+    public void shutdownNow(){
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdownNow();
         }
     }
 
-
+    @Override
+    public void shutdown(){
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
+    }
 
 }
