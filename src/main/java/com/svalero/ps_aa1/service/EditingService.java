@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class EditingService extends Service<ArrayList<String>> {
-    private int numThreads;
     private ArrayList<File> imagesToProcess = new ArrayList<>();
     private ArrayList<String> filters = new ArrayList<>();
     private final ExecutorService executorService;
@@ -43,7 +42,6 @@ public class EditingService extends Service<ArrayList<String>> {
             VBox inProcessContainer,
             Label inProcessLabel
     ){
-        this.numThreads = numThreads;
         this.imagesToProcess = imagesToProcess;
         this.filters = filters;
         this.brightness = brightness;
@@ -51,7 +49,7 @@ public class EditingService extends Service<ArrayList<String>> {
         this.historyArea = historyArea;
         this.inProcessContainer = inProcessContainer;
         this.inProcessLabel = inProcessLabel;
-        this.executorService = Executors.newFixedThreadPool(this.numThreads);
+        this.executorService = Executors.newFixedThreadPool(numThreads);
     }
     @Override
     protected Task<ArrayList<String>> createTask() {

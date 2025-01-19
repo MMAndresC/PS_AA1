@@ -2,7 +2,6 @@ package com.svalero.ps_aa1.controller;
 
 import com.svalero.ps_aa1.service.EditingService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
-import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -32,6 +31,7 @@ public class MainController implements Initializable {
     private String defaultPath;
     private final ArrayList<String> orderFilters = new ArrayList<>();
     private final ArrayList<File> imageToProcess = new ArrayList<>();
+    private String videoFilter = "";
 
     @FXML
     private Button selectFile;
@@ -56,6 +56,12 @@ public class MainController implements Initializable {
 
     @FXML
     private CheckBox checkGray;
+
+    @FXML
+    private CheckBox checkColorVideo;
+
+    @FXML
+    private CheckBox checkGrayVideo;
 
     @FXML
     private Label pathFiles;
@@ -85,10 +91,22 @@ public class MainController implements Initializable {
     private Label totalLabel;
 
     @FXML
+    private Label pathSaveVideo;
+
+    @FXML
+    private Label brigthnessLabelVideo;
+
+    @FXML
+    private Label pathFilesVideo;
+
+    @FXML
     private Pane previewPane;
 
     @FXML
     private Slider brightnessSlider;
+
+    @FXML
+    private Slider brightnessSliderVideo;
 
     @FXML
     private ScrollPane inProcessScroll;
@@ -102,15 +120,17 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        //Check if default paths exist
+        //Check if default paths exist, create directory & show in labels
         this.defaultPath = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY;
         createDirectory(defaultPath);
         pathFiles.setText(defaultPath);
+        pathFilesVideo.setText(defaultPath);
         String path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + LOGS_DIRECTORY;
         createDirectory(path);
         path = System.getProperty("user.home") + "\\" + MAIN_DIRECTORY + "\\" + SAVE_DIRECTORY;
         createDirectory(path);
         pathSave.setText(path);
+        pathSaveVideo.setText(path);
         //Link label with slider
         brightnessSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             brigthnessLabel.setText(String.valueOf(newValue.intValue()));
@@ -128,18 +148,34 @@ public class MainController implements Initializable {
                 }
             }
             applyFilters.setDisable(this.orderFilters.isEmpty());
-
         });
+        brightnessSliderVideo.valueProperty().addListener((observable, oldValue, newValue) ->{
+            brigthnessLabelVideo.setText(String.valueOf(newValue.intValue()));
+            if(newValue.intValue() != 0){
+                checkColorVideo.setSelected(false);
+                checkGrayVideo.setSelected(false);
+                this.videoFilter = "bright";
+            }else{
+                if(this.videoFilter.equals("bright"))
+                    this.videoFilter = "";
+            }
+        });
+        //Load logs in historial tab
         LoadLogFile.show(historyArea);
     }
 
-    public void onClickSelectFile(){
+    public void onClickSelectFile(javafx.event.ActionEvent event){
+        Button source = (Button) event.getSource();
+        String buttonId = source.getId();
         Stage stage = (Stage) selectFile.getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
-        //Filter by image extensions
-        FileChooser.ExtensionFilter imageFilter
-                = new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png", "*.jpeg", "*.bmp", "*.gif");
-        fileChooser.getExtensionFilters().add(imageFilter);
+        //Filter by extensions depends on event button
+        FileChooser.ExtensionFilter filter;
+        if(buttonId.equals("selectFileVideo"))
+            filter = new FileChooser.ExtensionFilter("Video Files", "*.mp4", "*.mov", "*.mkv", "*.avi");
+        else
+            filter = new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png", "*.jpeg", "*.bmp", "*.gif");
+        fileChooser.getExtensionFilters().add(filter);
         //Default directory to show
         File initialDirectory = new File(this.defaultPath);
         if (initialDirectory.exists()) {
@@ -147,6 +183,11 @@ public class MainController implements Initializable {
         }
         File selectedFile = fileChooser.showOpenDialog(stage);
         if (selectedFile != null) {
+            //Button video set text and end, no preview
+            if(buttonId.equals("selectFileVideo")){
+                pathFilesVideo.setText(selectedFile.getAbsolutePath());
+                return;
+            }
             pathFiles.setText(selectedFile.getAbsolutePath());
             this.imageToProcess.clear();//Clean last selected
             this.imageToProcess.add(selectedFile);
@@ -214,7 +255,9 @@ public class MainController implements Initializable {
         }
     }
 
-    public void onClickSelectSavedPath(){
+    public void onClickSelectSavedPath(javafx.event.ActionEvent event){
+        Button source = (Button) event.getSource();
+        String buttonId = source.getId();
         Stage stage = (Stage) selectSavedPath.getScene().getWindow();
         DirectoryChooser directoryChooser = new DirectoryChooser();
         //Default directory to show
@@ -224,7 +267,9 @@ public class MainController implements Initializable {
         }
         File selectedDirectory = directoryChooser.showDialog(stage);
         if(selectedDirectory != null) {
-            pathSave.setText(selectedDirectory.getAbsolutePath());
+            if(buttonId.equals("selectSavedPathVideo"))
+                pathSaveVideo.setText(selectedDirectory.getAbsolutePath());
+            else pathSave.setText(selectedDirectory.getAbsolutePath());
         }
     }
 
@@ -250,11 +295,34 @@ public class MainController implements Initializable {
         applyFilters.setDisable(this.orderFilters.isEmpty());
     }
 
+    public void onSelectVideoFilter(javafx.event.ActionEvent event){
+        CheckBox source = (CheckBox) event.getSource();
+        String checkBoxId = source.getId();
+        if(source.isSelected()){
+            if (checkBoxId.equals("checkColorVideo")) {
+                checkGrayVideo.setSelected(false);
+                this.videoFilter = "color";
+            } else {
+                checkColorVideo.setSelected(false);
+                this.videoFilter = "gray";
+            }
+        }else this.videoFilter = "";
+        brightnessSliderVideo.setValue(0);
+    }
+
     public void onClickApplyFilters(){
         applyFilters.setDisable(true);
         totalLabel.setText("Total: " + this.imageToProcess.size());
         int brightness = Integer.parseInt(brigthnessLabel.getText());
         String path = pathSave.getText().trim();
+        EditingService service = getEditingService(brightness, path);
+        controlStateService(service);
+        if(!service.isRunning())
+            service.restart();
+        this.inProcessScroll.setFitToHeight(true);
+    }
+
+    private EditingService getEditingService(int brightness, String path) {
         int numThreads = Integer.parseInt(numThreadsLabel.getText());
         //Init service
         EditingService service = new EditingService(
@@ -267,10 +335,7 @@ public class MainController implements Initializable {
             service.shutdown();
             service.cancel();
         });
-        controlStateService(service);
-        if(!service.isRunning())
-            service.restart();
-        this.inProcessScroll.setFitToHeight(true);
+        return service;
     }
 
     public void onIncreaseNumThreads(){
@@ -290,6 +355,18 @@ public class MainController implements Initializable {
         }
         if(currentValue - 1 == 1) decreaseButton.setDisable(true);
     }
+
+    public void onEditVideoAction(){
+        if(this.videoFilter.isEmpty() || !isVideoFile(pathFilesVideo.getText().trim())) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("ERROR");
+            alert.setContentText("Falta por seleccionar video o el filtro");
+            alert.show();
+            return;
+        }
+        System.out.println("sigue p'alante");
+    }
+
 
     public void controlStateService(EditingService service){
         service.stateProperty().addListener(new ChangeListener<>() {
@@ -330,6 +407,11 @@ public class MainController implements Initializable {
     private boolean isImageFile(File file) {
         String name = file.getName().toLowerCase();
         return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".gif");
+    }
+
+    private boolean isVideoFile(String path) {
+        String name = path.toLowerCase();
+        return name.endsWith(".mkv") || name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".avi");
     }
 
     public void createDirectory(String path){
