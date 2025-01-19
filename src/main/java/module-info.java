@@ -6,6 +6,7 @@ module com.svalero.ps_aa1 {
     requires java.desktop;
     requires javafx.swing;
     requires java.logging;
+    requires org.bytedeco.javacv;
 
     opens com.svalero.ps_aa1 to javafx.fxml;
     exports com.svalero.ps_aa1;
