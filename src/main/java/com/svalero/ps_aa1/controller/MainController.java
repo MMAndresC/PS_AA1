@@ -1,10 +1,14 @@
 package com.svalero.ps_aa1.controller;
 
-import com.svalero.ps_aa1.service.EditingService;
+import com.svalero.ps_aa1.interfaces.ShutdownExecutorService;
+import com.svalero.ps_aa1.service.EditingImageService;
+import com.svalero.ps_aa1.service.EditingVideoService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
+import com.svalero.ps_aa1.task.EditVideoTask;
 import com.svalero.ps_aa1.utils.LoadLogFile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Service;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -50,6 +54,9 @@ public class MainController implements Initializable {
 
     @FXML
     private Button decreaseButton;
+
+    @FXML
+    private Button editVideoButton;
 
     @FXML
     private CheckBox checkColor;
@@ -315,24 +322,24 @@ public class MainController implements Initializable {
         totalLabel.setText("Total: " + this.imageToProcess.size());
         int brightness = Integer.parseInt(brigthnessLabel.getText());
         String path = pathSave.getText().trim();
-        EditingService service = getEditingService(brightness, path);
+        EditingImageService service = getEditingImageService(brightness, path);
         controlStateService(service);
         if(!service.isRunning())
             service.restart();
         this.inProcessScroll.setFitToHeight(true);
     }
 
-    private EditingService getEditingService(int brightness, String path) {
+    private EditingImageService getEditingImageService(int brightness, String path) {
         int numThreads = Integer.parseInt(numThreadsLabel.getText());
         //Init service
-        EditingService service = new EditingService(
+        EditingImageService service = new EditingImageService(
                 numThreads, this.imageToProcess,this.orderFilters, brightness, path, historyArea, inProcessContainer, inProcessLabel
         );
         //Select stage
         Stage stage = (Stage) inProcessScroll.getScene().getWindow();
         //Event close stage shutdown executors service
         stage.setOnCloseRequest(event -> {
-            service.shutdown();
+            service.shutdownNow();
             service.cancel();
         });
         return service;
@@ -365,19 +372,54 @@ public class MainController implements Initializable {
             return;
         }
         System.out.println("sigue p'alante");
+        editVideoButton.setDisable(true);
+        int brightness = Integer.parseInt(brigthnessLabelVideo.getText());
+        String path = pathSaveVideo.getText().trim();
+        EditingVideoService service = getEditingVideoService(brightness, path);
+        controlStateService(service);
+        if(!service.isRunning())
+            service.restart();
+    }
+
+    private EditingVideoService getEditingVideoService(int brightness, String path) {
+        //Init service
+        EditingVideoService service =
+                new EditingVideoService(
+                        this.videoFilter,
+                        pathFilesVideo.getText().trim(),
+                        brightness,
+                        path,
+                        (frame, frameIndex, frameQueue) -> new EditVideoTask(frame, frameIndex, frameQueue)
+                );
+        //Select stage
+        Stage stage = (Stage) editVideoButton.getScene().getWindow();
+        //Event close stage shutdown executors service
+        stage.setOnCloseRequest(event -> {
+            service.shutdownNow();
+            service.cancel();
+        });
+        return service;
     }
 
 
-    public void controlStateService(EditingService service){
+    public <T extends Service<?>> void controlStateService(T service){
         service.stateProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
                 System.out.println("Service state: " + newState);
-                if(newState != RUNNING && newState != SCHEDULED)
-                    applyFilters.setDisable(false);
                 if(newState == FAILED){
                     System.out.println("Service failed, shutdown it now");
-                    service.shutdown();
+                    if (service instanceof ShutdownExecutorService closable) {
+                        closable.shutdownNow();
+                    }
+                    //service.shutdownNow();
+                }
+                if(newState != RUNNING && newState != SCHEDULED) {
+                    applyFilters.setDisable(false);
+                    if (service instanceof ShutdownExecutorService closable) {
+                        closable.shutdown();
+                    }
+                    //service.shutdown();
                 }
             }
         });
