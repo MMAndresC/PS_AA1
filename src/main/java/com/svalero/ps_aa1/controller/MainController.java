@@ -4,7 +4,8 @@ import com.svalero.ps_aa1.interfaces.ShutdownExecutorService;
 import com.svalero.ps_aa1.service.EditingImageService;
 import com.svalero.ps_aa1.service.EditingVideoService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
-import com.svalero.ps_aa1.task.EditVideoTask;
+import com.svalero.ps_aa1.utils.FileManager;
+import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -20,11 +21,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.bytedeco.javacv.Frame;
 
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import static com.svalero.ps_aa1.constants.Constants.*;
@@ -101,7 +104,7 @@ public class MainController implements Initializable {
     private Label pathSaveVideo;
 
     @FXML
-    private Label brigthnessLabelVideo;
+    private Label brightnessLabelVideo;
 
     @FXML
     private Label pathFilesVideo;
@@ -157,7 +160,7 @@ public class MainController implements Initializable {
             applyFilters.setDisable(this.orderFilters.isEmpty());
         });
         brightnessSliderVideo.valueProperty().addListener((observable, oldValue, newValue) ->{
-            brigthnessLabelVideo.setText(String.valueOf(newValue.intValue()));
+            brightnessLabelVideo.setText(String.valueOf(newValue.intValue()));
             if(newValue.intValue() != 0){
                 checkColorVideo.setSelected(false);
                 checkGrayVideo.setSelected(false);
@@ -323,7 +326,7 @@ public class MainController implements Initializable {
         int brightness = Integer.parseInt(brigthnessLabel.getText());
         String path = pathSave.getText().trim();
         EditingImageService service = getEditingImageService(brightness, path);
-        controlStateService(service);
+        controlImageService(service);
         if(!service.isRunning())
             service.restart();
         this.inProcessScroll.setFitToHeight(true);
@@ -371,25 +374,21 @@ public class MainController implements Initializable {
             alert.show();
             return;
         }
-        System.out.println("sigue p'alante");
         editVideoButton.setDisable(true);
-        int brightness = Integer.parseInt(brigthnessLabelVideo.getText());
-        String path = pathSaveVideo.getText().trim();
-        EditingVideoService service = getEditingVideoService(brightness, path);
-        controlStateService(service);
+        int brightness = Integer.parseInt(brightnessLabelVideo.getText());
+        EditingVideoService service = getEditingVideoService(brightness);
+        controlVideoService(service);
         if(!service.isRunning())
             service.restart();
     }
 
-    private EditingVideoService getEditingVideoService(int brightness, String path) {
+    private EditingVideoService getEditingVideoService(int brightness) {
         //Init service
         EditingVideoService service =
                 new EditingVideoService(
                         this.videoFilter,
                         pathFilesVideo.getText().trim(),
-                        brightness,
-                        path,
-                        (frame, frameIndex, frameQueue) -> new EditVideoTask(frame, frameIndex, frameQueue)
+                        brightness
                 );
         //Select stage
         Stage stage = (Stage) editVideoButton.getScene().getWindow();
@@ -401,25 +400,58 @@ public class MainController implements Initializable {
         return service;
     }
 
-
-    public <T extends Service<?>> void controlStateService(T service){
+    private void controlImageService(EditingImageService service){
         service.stateProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
-                System.out.println("Service state: " + newState);
+                System.out.println("Image service state: " + newState);
                 if(newState == FAILED){
-                    System.out.println("Service failed, shutdown it now");
-                    if (service instanceof ShutdownExecutorService closable) {
-                        closable.shutdownNow();
-                    }
-                    //service.shutdownNow();
+                    System.out.println("Image service failed, shutdown it now");
+                    service.shutdownNow();
                 }
                 if(newState != RUNNING && newState != SCHEDULED) {
                     applyFilters.setDisable(false);
-                    if (service instanceof ShutdownExecutorService closable) {
-                        closable.shutdown();
+                    service.shutdown();
+                }
+            }
+        });
+    }
+
+    private void controlVideoService(EditingVideoService service){
+        service.stateProperty().addListener(new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldState, Worker.State newState) {
+                System.out.println("Video service state: " + newState);
+                if(newState == FAILED){
+                    System.out.println("Video service failed, shutdown it now");
+                    service.shutdownNow();
+                }
+                if(newState != RUNNING && newState != SCHEDULED) {
+                    editVideoButton.setDisable(false);
+                    service.shutdown();
+                }
+                if(newState == SUCCEEDED){
+                    List<EditingVideoService.FrameTask> processedFrames = service.getValue();
+                    //Convert to frames
+                    List<Frame> frames = new ArrayList<>();
+                    for (EditingVideoService.FrameTask task : processedFrames) {
+                        frames.add(task.getFrame());
                     }
-                    //service.shutdown();
+                    String path = pathSaveVideo.getText().trim();
+                    try {
+                        boolean result = FileManager.writeFramesToVideo(
+                                path,
+                                frames,
+                                service.getFrameRate(),
+                                service.getWidth(),
+                                service.getHeight(),
+                                service.getVideoCodec()
+                        );
+                        System.out.println("result; " + result);
+                    } catch (Exception e) {
+                        HistoryLogger.logError("Error saving new video: " + e.getMessage());
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });

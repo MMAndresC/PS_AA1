@@ -2,7 +2,7 @@ package com.svalero.ps_aa1.task;
 
 import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.ImageFilters;
-import com.svalero.ps_aa1.utils.ImageManager;
+import com.svalero.ps_aa1.utils.FileManager;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
@@ -32,7 +32,7 @@ public class EditImageTask extends Task<String> {
     Label percent;
     Label status;
     ProgressBar progressBar;
-    ImageManager imageManager;
+    FileManager fileManager;
     ImageFilters imageFilters;
     Button cancel;
     Button save;
@@ -47,7 +47,7 @@ public class EditImageTask extends Task<String> {
         this.brightness = brightness;
         this.vBox = vBox;
         this.numImage = numImage;
-        this.imageManager = new ImageManager();
+        this.fileManager = new FileManager();
         int index = image.getName().lastIndexOf(".");
         this.formatName = image.getName().substring(index + 1);
         this.pathSave = pathSave;
@@ -62,7 +62,7 @@ public class EditImageTask extends Task<String> {
         createContainer();
         int total = 100 * this.filters.size();
         this.imageFilters = new ImageFilters();
-        BufferedImage bufferedImage =  this.imageManager.toBufferedImage(this.image);
+        BufferedImage bufferedImage =  this.fileManager.toBufferedImage(this.image);
         if(bufferedImage == null)
             throw new Exception("Error al cambiar el formato de la imagen");
         BufferedImage newImage = null;
@@ -70,15 +70,15 @@ public class EditImageTask extends Task<String> {
             String filter = this.filters.get(i);
             switch(filter){
                 case "bright":
-                    newImage = this.imageFilters.changeBrightness(this.brightness, bufferedImage, total, 100 * i, this::updateProgress);
+                    newImage = this.imageFilters.changeBrightness(this.brightness, bufferedImage, total, 100 * i, this::updateProgress, false);
                     setResultImage(newImage, i);
                     break;
                 case "color":
-                    newImage = this.imageFilters.invertColor(bufferedImage, total, 100 * i, this::updateProgress);
+                    newImage = this.imageFilters.invertColor(bufferedImage, total, 100 * i, this::updateProgress, false);
                     setResultImage(newImage, i);
                     break;
                 case "gray":
-                    newImage = this.imageFilters.toGrayScale(bufferedImage, total, 100 * i, this::updateProgress);
+                    newImage = this.imageFilters.toGrayScale(bufferedImage, total, 100 * i, this::updateProgress, false);
                     setResultImage(newImage, i);
             }
         }
@@ -91,7 +91,7 @@ public class EditImageTask extends Task<String> {
         Label newFilter = new Label("");
         if(index + 1 < this.filters.size())
             newFilter.setText(getFilterName(index + 1));
-        ImageView imageView = this.imageManager.createImageViewFromBufferedImage(image, this.SIZE);
+        ImageView imageView = this.fileManager.createImageViewFromBufferedImage(image, this.SIZE);
         Platform.runLater(() -> {
             try {
                 if(!newFilter.getText().isEmpty())
@@ -107,7 +107,7 @@ public class EditImageTask extends Task<String> {
 
     private void createContainer(){
         try {
-            ImageView imageView = this.imageManager.createImageViewFromFile(this.image, this.SIZE);
+            ImageView imageView = this.fileManager.createImageViewFromFile(this.image, this.SIZE);
             this.hBox = new HBox();
             Label filter = new Label();
             filter.setText(getFilterName(0));
@@ -172,7 +172,7 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                this.pathSavedImage = this.imageManager.saveImage(this.pathSave, this.formatName, resultImage);
+                this.pathSavedImage = this.fileManager.saveImage(this.pathSave, this.formatName, resultImage);
                 Platform.runLater(() -> {
                     try {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
