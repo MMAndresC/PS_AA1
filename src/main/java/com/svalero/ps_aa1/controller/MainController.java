@@ -1,6 +1,5 @@
 package com.svalero.ps_aa1.controller;
 
-import com.svalero.ps_aa1.interfaces.ShutdownExecutorService;
 import com.svalero.ps_aa1.service.EditingImageService;
 import com.svalero.ps_aa1.service.EditingVideoService;
 import com.svalero.ps_aa1.task.DirectoryPreviewTask;
@@ -9,7 +8,6 @@ import com.svalero.ps_aa1.utils.HistoryLogger;
 import com.svalero.ps_aa1.utils.LoadLogFile;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Service;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -446,7 +444,8 @@ public class MainController implements Initializable {
                                 service.getHeight(),
                                 service.getVideoCodec()
                         );
-                        System.out.println("result; " + result);
+                        HistoryLogger.log("Origen: " + pathFilesVideo.getText() + " - Filtro: " + videoFilter + " - Status: COMPLETADO");
+                        LoadLogFile.show(historyArea);
                     } catch (Exception e) {
                         HistoryLogger.logError("Error saving new video: " + e.getMessage());
                         throw new RuntimeException(e);
