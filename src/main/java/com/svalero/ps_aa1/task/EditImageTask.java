@@ -24,7 +24,6 @@ import java.util.ArrayList;
 public class EditImageTask extends Task<String> {
     File image;
     ArrayList<String> filters;
-    int index;
     int brightness;
     int numImage;
     VBox vBox;
@@ -38,10 +37,9 @@ public class EditImageTask extends Task<String> {
     Button save;
     String formatName;
     Pane pane;
-    String pathSave;
     String pathSavedImage;
     final int SIZE = 120;
-    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage, String pathSave){
+    public EditImageTask(File image, ArrayList<String> filters, int brightness, VBox vBox, int numImage){
         this.image = image;
         this.filters = filters;
         this.brightness = brightness;
@@ -50,7 +48,6 @@ public class EditImageTask extends Task<String> {
         this.fileManager = new FileManager();
         int index = image.getName().lastIndexOf(".");
         this.formatName = image.getName().substring(index + 1);
-        this.pathSave = pathSave;
         this.pathSavedImage = " ";
     }
     @Override
@@ -172,7 +169,9 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                this.pathSavedImage = this.fileManager.saveImage(this.pathSave, this.formatName, resultImage);
+                Label label = (Label) this.save.getScene().lookup("#pathSave");
+                String path = label.getText().trim();
+                this.pathSavedImage = this.fileManager.saveImage(path, this.formatName, resultImage);
                 Platform.runLater(() -> {
                     try {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);

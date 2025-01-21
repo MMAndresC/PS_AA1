@@ -28,7 +28,6 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
     private final ExecutorService executorService;
     private EditImageTask editImageTask;
     private final int brightness;
-    private final String pathSave;
     private final TextArea historyArea;
     private final VBox inProcessContainer;
     private final Label inProcessLabel;
@@ -38,7 +37,6 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
             ArrayList<File> imagesToProcess,
             ArrayList<String> filters,
             int brightness,
-            String pathSave,
             TextArea historyArea,
             VBox inProcessContainer,
             Label inProcessLabel
@@ -46,7 +44,6 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
         this.imagesToProcess = imagesToProcess;
         this.filters = filters;
         this.brightness = brightness;
-        this.pathSave = pathSave;
         this.historyArea = historyArea;
         this.inProcessContainer = inProcessContainer;
         this.inProcessLabel = inProcessLabel;
@@ -61,7 +58,7 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
                 List<Callable<String>> tasks = new ArrayList<>();
                 for (int i = 0; i < imagesToProcess.size(); i++) {
                     File image = imagesToProcess.get(i);
-                    EditImageTask task = new EditImageTask(image, filters, brightness, inProcessContainer, i, pathSave);
+                    EditImageTask task = new EditImageTask(image, filters, brightness, inProcessContainer, i);
                     //Set listener to check task state
                     controlStateTask(task);
                     //To adapt types Callable <-> EditImageTask, invokeAll admit Callables

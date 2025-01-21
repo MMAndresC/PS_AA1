@@ -324,19 +324,18 @@ public class MainController implements Initializable {
         applyFilters.setDisable(true);
         totalLabel.setText("Total: " + this.imageToProcess.size());
         int brightness = Integer.parseInt(brigthnessLabel.getText());
-        String path = pathSave.getText().trim();
-        EditingImageService service = getEditingImageService(brightness, path);
+        EditingImageService service = getEditingImageService(brightness);
         controlImageService(service);
         if(!service.isRunning())
             service.restart();
         this.inProcessScroll.setFitToHeight(true);
     }
 
-    private EditingImageService getEditingImageService(int brightness, String path) {
+    private EditingImageService getEditingImageService(int brightness) {
         int numThreads = Integer.parseInt(numThreadsLabel.getText());
         //Init service
         EditingImageService service = new EditingImageService(
-                numThreads, this.imageToProcess,this.orderFilters, brightness, path, historyArea, inProcessContainer, inProcessLabel
+                numThreads, this.imageToProcess,this.orderFilters, brightness, historyArea, inProcessContainer, inProcessLabel
         );
         //Select stage
         Stage stage = (Stage) inProcessScroll.getScene().getWindow();
