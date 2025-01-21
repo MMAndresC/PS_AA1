@@ -124,28 +124,36 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
 
     private void setFailedUi(int index){
         try{
-            Pane pane = (Pane) inProcessContainer.getChildren().get(index);
-            HBox hbox = (HBox) pane.getChildren().getLast();
-            Label label = (Label) hbox.getChildren().getFirst();
-            label.setText("Fallido");
-            ProgressBar bar = (ProgressBar) hbox.getChildren().get(1);
-            bar.progressProperty().unbind();
-            bar.setProgress(0);
-            Label percent = (Label) hbox.getChildren().get(2);
-            percent.textProperty().unbind();
-            percent.setText("0%");
-            Button clean = (Button) hbox.getChildren().get(3);
-            clean.setStyle("-fx-text-fill: black;");
-            clean.setText("Limpiar");
-            clean.setOnAction(event -> {
-                Platform.runLater(() -> {
-                    try{
-                        inProcessContainer.getChildren().remove(pane);
-                    }catch (Exception e){
-                        HistoryLogger.logError(e.getMessage());
-                    }
-                });
-            });
+            boolean notFound = true;
+            for(int i = 0; i < inProcessContainer.getChildren().size() && notFound; i++){
+                Pane pane = (Pane) inProcessContainer.getChildren().get(i);
+                HBox hbox = (HBox) pane.getChildren().getLast();
+                //Label percent is element with index 2
+                Label percent = (Label) hbox.getChildren().get(2);
+                int num = Integer.parseInt(percent.getText().split("%")[0]);
+                if(num < 0){
+                    notFound = false;
+                    Label status = (Label) hbox.getChildren().getFirst();
+                    status.setText("Fallido");
+                    ProgressBar bar = (ProgressBar) hbox.getChildren().get(1);
+                    bar.progressProperty().unbind();
+                    bar.setProgress(0);
+                    percent.textProperty().unbind();
+                    percent.setText("0%");
+                    Button clean = (Button) hbox.getChildren().get(3);
+                    clean.setStyle("-fx-text-fill: black;");
+                    clean.setText("Limpiar");
+                    clean.setOnAction(event -> {
+                        Platform.runLater(() -> {
+                            try{
+                                inProcessContainer.getChildren().remove(pane);
+                            }catch (Exception e){
+                                HistoryLogger.logError(e.getMessage());
+                            }
+                        });
+                    });
+                }
+            }
         }catch(Exception e){
             System.out.println("Failed to edit UI on failed task");
             HistoryLogger.logError("Failed to edit UI on failed task");
