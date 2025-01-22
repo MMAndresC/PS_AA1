@@ -180,15 +180,13 @@ public class EditImageTask extends Task<String> {
             try{
                 Label label = (Label) this.save.getScene().lookup("#pathSave");
                 String path = label.getText().trim();
-                this.pathSavedImage = this.fileManager.saveImage(path, this.formatName, resultImage);
                 HBox hbox = (HBox) this.save.getParent();
                 Label idFile = (Label) hbox.getChildren().get(3);
                 if(idFile.getText().isEmpty())
                     this.pathSavedImage = this.fileManager.saveImage(path, this.formatName, resultImage);
                 else{
                     //Search imageView selected to extract image
-                    TabPane tabPane =  (TabPane) this.save.getScene().getRoot();
-                    ImageView imageView = (ImageView) tabPane.lookup("#" + idFile.getText().trim());
+                    ImageView imageView = (ImageView) this.save.getScene().lookup("#" + idFile.getText().trim());
                     Image img = imageView.getImage();
                     BufferedImage bufferedImage = SwingFXUtils.fromFXImage(img, null);
                     //Change format to save file
