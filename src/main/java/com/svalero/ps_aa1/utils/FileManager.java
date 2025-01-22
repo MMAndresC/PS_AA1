@@ -6,7 +6,6 @@ import javafx.scene.image.ImageView;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.ffmpeg.global.avcodec;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

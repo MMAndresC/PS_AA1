@@ -6,11 +6,10 @@ import com.svalero.ps_aa1.utils.FileManager;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -20,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class EditImageTask extends Task<String> {
     File image;
@@ -92,6 +92,14 @@ public class EditImageTask extends Task<String> {
         if(index + 1 < this.filters.size())
             newFilter.setText(getFilterName(index + 1));
         ImageView imageView = this.fileManager.createImageViewFromBufferedImage(image, this.SIZE);
+        String shortUUID = UUID.randomUUID().toString().substring(0, 5);
+        imageView.setId(this.filters.get(index) + "_" + shortUUID);
+        imageView.setOnMouseClicked(event -> {
+            Pane pane = (Pane) this.hBox.getParent();
+            HBox hbox = (HBox) pane.getChildren().get(1);
+            Label idFile = (Label) hbox.getChildren().get(3);
+            idFile.setText(imageView.getId());
+        });
         Platform.runLater(() -> {
             try {
                 if(!newFilter.getText().isEmpty())
@@ -122,7 +130,8 @@ public class EditImageTask extends Task<String> {
             this.cancel = new Button("❌");
             this.cancel.setStyle("-fx-text-fill: red;");
             this.cancel.setOnAction(event -> cancelTask());
-            HBox progressBarContainer = new HBox(this.status, progressBar, percent, this.cancel);
+            Label idFile = new Label();
+            HBox progressBarContainer = new HBox(this.status, progressBar, percent, idFile, this.cancel);
             progressBarContainer.setAlignment(Pos.CENTER);
             progressBarContainer.setLayoutY(SIZE + 8);
             progressBarContainer.setSpacing(5);
@@ -172,7 +181,25 @@ public class EditImageTask extends Task<String> {
         this.save = new Button("Guardar");
         this.save.setOnAction(event -> {
             try{
-                this.pathSavedImage = this.fileManager.saveImage(this.pathSave, this.formatName, resultImage);
+                HBox hbox = (HBox) this.save.getParent();
+                Label idFile = (Label) hbox.getChildren().get(3);
+                if(idFile.getText().isEmpty())
+                    this.pathSavedImage = this.fileManager.saveImage(this.pathSave, this.formatName, resultImage);
+                else{
+                    //Search imageView selected to extract image
+                    TabPane tabPane =  (TabPane) this.save.getScene().getRoot();
+                    ImageView imageView = (ImageView) tabPane.lookup("#" + idFile.getText().trim());
+                    Image img = imageView.getImage();
+                    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(img, null);
+                    //Change format to save file
+                    BufferedImage compatibleImage = new BufferedImage(
+                            bufferedImage.getWidth(),
+                            bufferedImage.getHeight(),
+                            BufferedImage.TYPE_INT_RGB // Compatible with JPG
+                    );
+                    compatibleImage.getGraphics().drawImage(bufferedImage, 0, 0, null);
+                    this.pathSavedImage = this.fileManager.saveImage(this.pathSave, this.formatName, compatibleImage);
+                }
                 Platform.runLater(() -> {
                     try {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
