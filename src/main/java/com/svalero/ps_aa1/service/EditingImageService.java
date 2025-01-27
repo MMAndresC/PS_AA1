@@ -137,7 +137,7 @@ public class EditingImageService extends Service<ArrayList<String>> implements S
                     bar.setProgress(0);
                     percent.textProperty().unbind();
                     percent.setText("0%");
-                    Button clean = (Button) hbox.getChildren().get(3);
+                    Button clean = (Button) hbox.getChildren().get(4);
                     clean.setStyle("-fx-text-fill: black;");
                     clean.setText("Limpiar");
                     clean.setOnAction(event -> {
